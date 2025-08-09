@@ -230,6 +230,39 @@ export default function Results() {
                   <div className="text-sm text-gray-600">Accuracy</div>
                 </div>
               )}
+              
+              {/* Go/No-Go specific metrics */}
+              {selectedResult.type === 'GO_NO_GO' && (
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <h4 className="text-sm font-semibold mb-2 text-blue-800 dark:text-blue-200">
+                    Scientific Analysis Notes
+                  </h4>
+                  <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+                    <p>• False alarms (incorrect responses to STOP signals) are excluded from RT calculations per scientific standards</p>
+                    <p>• Only correct GO responses are included in reaction time analysis</p>
+                    <p>• Anticipatory responses (&lt;100ms) and delayed responses (&gt;1000ms) are flagged as outliers</p>
+                  </div>
+                  {(() => {
+                    const mainTrials = selectedResult.trials.filter(trial => !trial.isPractice);
+                    const goTrials = mainTrials.filter(trial => trial.stimulusDetail === 'go');
+                    const nogoTrials = mainTrials.filter(trial => trial.stimulusDetail === 'nogo');
+                    const falseAlarms = nogoTrials.filter(trial => trial.accuracy === false).length;
+                    const correctInhibitions = nogoTrials.filter(trial => trial.accuracy === true).length;
+                    const inhibitionRate = nogoTrials.length > 0 ? (correctInhibitions / nogoTrials.length) * 100 : 0;
+                    
+                    return (
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="font-medium">False Alarms:</span> {falseAlarms}
+                        </div>
+                        <div>
+                          <span className="font-medium">Inhibition Rate:</span> {Math.round(inhibitionRate)}%
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -284,6 +317,7 @@ export default function Results() {
                         <th className="text-left py-2">Accuracy</th>
                       )}
                       <th className="text-left py-2">Status</th>
+                      <th className="text-left py-2">Exclusion Reason</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -325,6 +359,9 @@ export default function Results() {
                             >
                               {trial.excludedFlag ? 'Excluded' : 'Valid'}
                             </span>
+                          </td>
+                          <td className="py-2 text-xs text-gray-600">
+                            {trial.excludedFlag && trial.exclusionReason ? trial.exclusionReason : '--'}
                           </td>
                         </tr>
                       ))}

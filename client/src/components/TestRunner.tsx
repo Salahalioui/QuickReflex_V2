@@ -484,6 +484,37 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
       cleanupRef.current = null;
     }
 
+    // Determine exclusion criteria for scientific validity
+    let excludedFlag = false;
+    let exclusionReason: string | null = null;
+    
+    if (configuration.type === 'GO_NO_GO') {
+      // For Go/No-Go: False alarms (tapping on STOP) should be excluded from RT analysis
+      if (testState.stimulusDetail === 'nogo' && accuracy === false) {
+        excludedFlag = true;
+        exclusionReason = 'False alarm (incorrect response to STOP signal)';
+      }
+      // Extremely fast responses (< 100ms) are likely anticipatory
+      else if (timing.reactionTime < 100) {
+        excludedFlag = true;
+        exclusionReason = 'Anticipatory response (RT < 100ms)';
+      }
+      // Very slow responses (> 1000ms) may indicate inattention
+      else if (timing.reactionTime > 1000) {
+        excludedFlag = true;
+        exclusionReason = 'Delayed response (RT > 1000ms)';
+      }
+    } else {
+      // For SRT and CRT: exclude only extremely fast/slow responses
+      if (timing.reactionTime < 100) {
+        excludedFlag = true;
+        exclusionReason = 'Anticipatory response (RT < 100ms)';
+      } else if (timing.reactionTime > 1500) {
+        excludedFlag = true;
+        exclusionReason = 'Delayed response (RT > 1500ms)';
+      }
+    }
+
     // Record trial
     try {
       await recordTrial({
@@ -495,8 +526,8 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
         responseTimestamp: timing.endTime,
         rtRaw: timing.reactionTime,
         rtCorrected: timing.correctedReactionTime,
-        excludedFlag: false,
-        exclusionReason: null,
+        excludedFlag,
+        exclusionReason,
         isPractice: testState.isPractice,
         accuracy: accuracy ?? null,
       });
