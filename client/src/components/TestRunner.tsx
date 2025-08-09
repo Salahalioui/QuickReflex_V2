@@ -243,136 +243,149 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
 
       // Set stimulus timeout for Go/No-Go STOP signals
       if (configuration.type === 'GO_NO_GO' && stimulusDetail === 'nogo') {
-        stimulusTimeoutRef.current = setTimeout(async () => {
-          if (!testState.awaitingResponse) return;
-
-          // Clear stimulus timeout
-          if (stimulusTimeoutRef.current) {
-            clearTimeout(stimulusTimeoutRef.current);
-            stimulusTimeoutRef.current = null;
-          }
-
-          // For Go/No-Go No-Go trials: timeout means correct response (didn't tap)
-          const accuracy = true; // No-Go timeout is correct
+        console.log('Setting STOP timeout for nogo stimulus');
+        stimulusTimeoutRef.current = setTimeout(() => {
+          console.log('STOP timeout triggered');
           
-          // Generate feedback for practice
-          let feedbackMessage: string | undefined;
-          if (testState.isPractice) {
-            feedbackMessage = 'Good! You correctly avoided tapping on STOP.';
-          }
+          // Check if stimulus is still visible and we're awaiting response
+          setTestState(currentState => {
+            console.log('Current state in timeout:', { showCue: currentState.showCue, awaitingResponse: currentState.awaitingResponse });
+            
+            if (!currentState.showCue || !currentState.awaitingResponse) {
+              console.log('Stimulus already handled, skipping timeout');
+              return currentState;
+            }
 
-          // Hide stimulus and set feedback
-          setTestState(prev => ({ 
-            ...prev, 
-            showCue: false, 
-            awaitingResponse: false,
-            showFeedback: prev.isPractice,
-            feedbackMessage
-          }));
+            console.log('Processing STOP timeout');
+            
+            // Hide stimulus immediately
+            if (cueElementRef.current) {
+              cueElementRef.current.style.visibility = 'hidden';
+              cueElementRef.current.style.backgroundColor = 'transparent';
+              cueElementRef.current.style.transform = '';
+              cueElementRef.current.style.borderRadius = '';
+              cueElementRef.current.style.width = '';
+              cueElementRef.current.style.height = '';
+              cueElementRef.current.style.display = '';
+              cueElementRef.current.style.alignItems = '';
+              cueElementRef.current.style.justifyContent = '';
+              cueElementRef.current.style.fontSize = '';
+              cueElementRef.current.style.fontWeight = '';
+              cueElementRef.current.style.color = '';
+              cueElementRef.current.textContent = '';
+            }
 
-          // Reset stimulus element
-          if (cueElementRef.current) {
-            cueElementRef.current.style.visibility = 'hidden';
-            cueElementRef.current.style.backgroundColor = 'transparent';
-            cueElementRef.current.style.transform = '';
-            cueElementRef.current.style.borderRadius = '';
-            cueElementRef.current.style.width = '';
-            cueElementRef.current.style.height = '';
-            cueElementRef.current.style.display = '';
-            cueElementRef.current.style.alignItems = '';
-            cueElementRef.current.style.justifyContent = '';
-            cueElementRef.current.style.fontSize = '';
-            cueElementRef.current.style.fontWeight = '';
-            cueElementRef.current.style.color = '';
-            cueElementRef.current.textContent = '';
-          }
+            if (cleanupRef.current) {
+              cleanupRef.current();
+              cleanupRef.current = null;
+            }
 
-          if (cleanupRef.current) {
-            cleanupRef.current();
-            cleanupRef.current = null;
-          }
+            // Clear stimulus timeout
+            if (stimulusTimeoutRef.current) {
+              clearTimeout(stimulusTimeoutRef.current);
+              stimulusTimeoutRef.current = null;
+            }
 
-          // Record trial with timeout (correct response for No-Go)
-          try {
-            await recordTrial({
+            // Record timeout trial
+            recordTrial({
               sessionId: currentProfile?.id || 'anonymous',
-              trialNumber: testState.currentTrial + 1,
+              trialNumber: currentState.currentTrial + 1,
               stimulusType: configuration.stimulusType,
-              stimulusDetail: testState.stimulusDetail || '',
-              cueTimestamp: testState.cueStartTime,
+              stimulusDetail: currentState.stimulusDetail || '',
+              cueTimestamp: currentState.cueStartTime,
               responseTimestamp: null,
               rtRaw: null,
               rtCorrected: null,
               excludedFlag: false,
               exclusionReason: null,
-              isPractice: testState.isPractice,
-              accuracy: accuracy ?? null,
-            });
-          } catch (error) {
-            console.error('Failed to record timeout trial:', error);
-          }
+              isPractice: currentState.isPractice,
+              accuracy: true, // No-Go timeout is correct
+            }).catch(error => console.error('Failed to record timeout trial:', error));
 
-          // Continue to next trial after feedback delay
+            // Generate feedback message
+            const feedbackMessage = currentState.isPractice ? 'Good! You correctly avoided tapping on STOP.' : undefined;
+
+            // Return updated state
+            return {
+              ...currentState,
+              showCue: false,
+              awaitingResponse: false,
+              showFeedback: currentState.isPractice,
+              feedbackMessage
+            };
+          });
+
+          // Continue to next trial after brief delay
           setTimeout(() => {
-            if (testState.isPractice) {
-              const practiceCompleted = testState.practiceTrialsCompleted + 1;
-              if (practiceCompleted >= configuration.practiceTrials) {
-                setTestState(prev => ({ 
-                  ...prev, 
-                  phase: 'break',
-                  showFeedback: false,
-                  isBreak: true
-                }));
+            setTestState(currentState => {
+              if (currentState.isPractice) {
+                const practiceCompleted = currentState.practiceTrialsCompleted + 1;
+                if (practiceCompleted >= configuration.practiceTrials) {
+                  return { 
+                    ...currentState, 
+                    phase: 'break',
+                    showFeedback: false,
+                    isBreak: true
+                  };
+                } else {
+                  // Continue practice
+                  const newState = { 
+                    ...currentState, 
+                    practiceTrialsCompleted: practiceCompleted,
+                    showFeedback: false
+                  };
+                  
+                  // Start next trial
+                  setTimeout(() => {
+                    if (unfreezeRenderingRef.current) {
+                      unfreezeRenderingRef.current();
+                    }
+                    unfreezeRenderingRef.current = freezeNonEssentialRendering();
+                    
+                    const newStimulusDetail = Math.random() < 0.7 ? 'go' : 'nogo';
+                    setTestState(prev => ({ ...prev, stimulusDetail: newStimulusDetail }));
+                    
+                    const isiDelay = getRandomISI(configuration.isiMin, configuration.isiMax);
+                    trialTimeoutRef.current = setTimeout(() => {
+                      showStimulus(newStimulusDetail);
+                    }, isiDelay);
+                  }, 100);
+                  
+                  return newState;
+                }
               } else {
-                setTestState(prev => ({ 
-                  ...prev, 
-                  practiceTrialsCompleted: practiceCompleted,
-                  showFeedback: false
-                }));
-                // Start next trial manually to avoid circular dependency
-                setTimeout(() => {
-                  if (unfreezeRenderingRef.current) {
-                    unfreezeRenderingRef.current();
-                  }
-                  unfreezeRenderingRef.current = freezeNonEssentialRendering();
+                const nextTrial = currentState.currentTrial + 1;
+                if (nextTrial >= currentState.totalTrials) {
+                  return { ...currentState, phase: 'complete', showFeedback: false };
+                } else {
+                  const newState = { 
+                    ...currentState, 
+                    currentTrial: nextTrial,
+                    showFeedback: false
+                  };
                   
-                  const newStimulusDetail = Math.random() < 0.7 ? 'go' : 'nogo';
-                  setTestState(prev => ({ ...prev, stimulusDetail: newStimulusDetail }));
+                  // Start next trial
+                  setTimeout(() => {
+                    if (unfreezeRenderingRef.current) {
+                      unfreezeRenderingRef.current();
+                    }
+                    unfreezeRenderingRef.current = freezeNonEssentialRendering();
+                    
+                    const newStimulusDetail = Math.random() < 0.7 ? 'go' : 'nogo';
+                    setTestState(prev => ({ ...prev, stimulusDetail: newStimulusDetail }));
+                    
+                    const isiDelay = getRandomISI(configuration.isiMin, configuration.isiMax);
+                    trialTimeoutRef.current = setTimeout(() => {
+                      showStimulus(newStimulusDetail);
+                    }, isiDelay);
+                  }, 100);
                   
-                  const isiDelay = getRandomISI(configuration.isiMin, configuration.isiMax);
-                  trialTimeoutRef.current = setTimeout(() => {
-                    showStimulus(newStimulusDetail);
-                  }, isiDelay);
-                }, 0);
+                  return newState;
+                }
               }
-            } else {
-              const nextTrial = testState.currentTrial + 1;
-              if (nextTrial >= testState.totalTrials) {
-                setTestState(prev => ({ ...prev, phase: 'complete', showFeedback: false }));
-              } else {
-                setTestState(prev => ({ 
-                  ...prev, 
-                  currentTrial: nextTrial,
-                  showFeedback: false
-                }));
-                // Start next trial manually to avoid circular dependency
-                setTimeout(() => {
-                  if (unfreezeRenderingRef.current) {
-                    unfreezeRenderingRef.current();
-                  }
-                  unfreezeRenderingRef.current = freezeNonEssentialRendering();
-                  
-                  const newStimulusDetail = Math.random() < 0.7 ? 'go' : 'nogo';
-                  setTestState(prev => ({ ...prev, stimulusDetail: newStimulusDetail }));
-                  
-                  const isiDelay = getRandomISI(configuration.isiMin, configuration.isiMax);
-                  trialTimeoutRef.current = setTimeout(() => {
-                    showStimulus(newStimulusDetail);
-                  }, isiDelay);
-                }, 0);
-              }
-            }
-          }, testState.isPractice ? 1500 : 500);
+            });
+          }, 1500); // Fixed delay for feedback
+
         }, 1500); // 1.5 second timeout for No-Go signals
       }
     };
