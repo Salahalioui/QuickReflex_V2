@@ -189,7 +189,7 @@ export default function Calibration() {
 
           {/* Save Button */}
           <Button 
-            className="w-full" 
+            className="w-full text-[#0d0c0c]" 
             size="lg"
             onClick={handleSaveCalibration}
             disabled={isSaving}
