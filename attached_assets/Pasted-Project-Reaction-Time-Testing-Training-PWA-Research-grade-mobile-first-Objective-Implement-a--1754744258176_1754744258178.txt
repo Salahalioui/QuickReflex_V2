@@ -1,0 +1,116 @@
+Project: Reaction Time Testing & Training PWA (Research-grade, mobile-first)
+Objective: Implement a complete Progressive Web App that allows athletes, coaches, and researchers to measure and train reaction time using SRT (visual/auditory/tactile), CRT (2- & 4-choice) and Go/No-Go modules. The app must be scientific-grade (trial logs, latency correction, data cleaning), offline-capable (IndexedDB & PWA), and production-ready.
+
+Important constraint (calibration): do not attempt to detect refresh rate or touch sampling automatically. Instead the user provides two numeric calibration inputs: refreshRateHz and touchSamplingHz. These values are saved per-profile and used to compute deviceLatencyOffsetMs = (1000/refreshRateHz)/2 + (1000/touchSamplingHz)/2. The agent must implement calibration UI and use these numbers in all RT corrections and in exported metadata.
+
+High-level requirements & deliverables
+
+Production PWA implemented in TypeScript + React + Vite (or SvelteKit if you prefer — but TypeScript + React is default). Use Tailwind CSS for styling.
+
+PWA manifest + Service Worker for offline use and installability.
+
+State management: Zustand (typed). Persistence into IndexedDB via a typed helper module. Optional cloud sync (Supabase) is a later milestone.
+
+Timing & accuracy: use performance.now() and requestAnimationFrame() for visuals. Use pointerdown/pointerup events. Preload audio files. Freeze non-essential rendering during trials.
+
+Modules: SRT (visual, auditory, tactile), CRT (2-choice, 4-choice, visual & audio), Go/No-Go (visual & audio). Trial counts, ISI ranges, practice trial counts, and outlier rules follow the PRD Version 2.0; exact counts below.
+
+Export formats: CSV, JSON, SPSS-ready .sav (or provide instructions + script to create .sav), and PDF summary. Every export must include raw trial log, cleaned dataset, and metadata including refreshRateHz, touchSamplingHz, deviceLatencyOffsetMs, device string, browser/OS, and calibration timestamp.
+
+Validation suite under /src/validation with DeviceProfiler.ts (handles manual input & checks), ReliabilityCalc.ts (ICC, CV%), and BlandAltman.tsx (renderable plots).
+
+Automated tests for core algorithms (timing, cleaning, export). Unit tests in Jest (or Vitest) that validate outlier removal and correction formula.
+
+A README with dev & deployment steps, and a CONTRIBUTING.md describing code style and branch workflow.
+
+Deliver a sample dataset and an “in-app protocol guide” (English) as a screen.
+
+Milestones & acceptance criteria (agent must implement sequentially):
+
+Milestone 0 — Project scaffold (deliverable: repo skeleton)
+
+Implement TypeScript + React + Vite skeleton with Tailwind, Prettier, ESLint, and Husky pre-commit hooks.
+
+Add PWA manifest and basic service worker registration.
+
+Provide yarn dev and yarn build commands.
+
+Acceptance: project builds, lints, and runs locally (start page visible).
+
+Milestone 1 — Calibration & Profile (deliverable: CalibrationScreen & Profile storage)
+
+Create CalibrationScreen for manual entry of refreshRateHz and touchSamplingHz. Provide presets and “Unknown” fallback. Provide short help text. Save values to user profile in IndexedDB. Compute and save deviceLatencyOffsetMs per profile as (1000/refreshRateHz)/2 + (1000/touchSamplingHz)/2.
+
+Expose a typed profile object: { id, name, refreshRateHz, touchSamplingHz, deviceLatencyOffsetMs, calibrationTimestamp, deviceInfoString }.
+
+Acceptance: user can save calibration; computed offset visible in UI and included in local profile store. Unit test verifying computation with example inputs.
+
+Milestone 2 — Core timing utilities & trial engine (deliverable: timing.ts + TestRunner)
+
+Implement timing.ts utilities: getRandomISI, startCueWithRAF, recordResponse, applyLatencyCorrection(rtRaw, deviceLatencyOffsetMs). Use performance.now(). Ensure only minimal rendering during trials.
+
+Implement TestRunner component that runs a single trial sequence (cue scheduling, cue display, response capture, trial logging). Export typed trial object: { trialId, stimulusType, stimulusDetail, cueTimestamp, responseTimestamp, rtRaw, rtCorrected, excludedFlag, exclusionReason }.
+
+Acceptance: simulated trial run (no UI) returns correctly computed rtCorrected for given deviceLatencyOffsetMs. Unit tests for timing utilities.
+
+Milestone 3 — SRT module (deliverable: SRT flow + results export)
+
+Implement Visual, Auditory, and Tactile SRT flows with: 20 trials, ISI 1.5–4.0 s, 5 practice. Implement outlier cleaning: remove rtRaw <100 ms or >1000 ms; remove per-subject min & max; then ±2.5 SD.
+
+Implement Results screen for SRT with table and per-trial list, histogram & trial-by-trial line chart (use a lightweight chart lib or pure canvas). Provide CSV/JSON/PDF export containing metadata and cleaned dataset.
+
+Acceptance: run SRT session locally, view results, confirm exported CSV contains calibration fields and deviceLatencyOffsetMs. Unit tests for cleaning function.
+
+Milestone 4 — CRT & Go/No-Go modules (deliverable: full test battery)
+
+Implement CRT 2-choice and 4-choice (40 trials each, 8 practice). Implement Go/No-Go (40 trials, 28 Go / 12 No-Go, 8 practice). Apply same timing and cleaning rules. Implement practice & instruction screens. Implement “battery mode” to run SRT→CRT→Go/No-Go sequentially (with configurable breaks).
+
+Acceptance: run a full battery, view combined result dashboard. Exports must contain full raw trial log (session-level) and cleaned datasets for each module.
+
+Milestone 5 — Validation & Reliability suite (deliverable: /src/validation)
+
+Implement ReliabilityCalc.ts for within-subject SEM, CV%, and ICC (two-way mixed, consistency). Implement BlandAltman.tsx for comparing QuickReflex to a reference dataset (data-driven). Add a mode to upload a reference CSV and auto-run Bland–Altman.
+
+Acceptance: sample script demonstrates ICC computation on a sample dataset in tests. Bland–Altman plot renders with sample data.
+
+Milestone 6 — UI polish, accessibility, and QA (deliverable: production UI)
+
+Ensure high-contrast and color-blind safe palette. Implement toggle for vibration and sound. Disable pinch/zoom and page scroll in test mode. Ensure large touch targets. Implement small animations only for cue and with RAF. Add keyboard support for desktop.
+
+Acceptance: passes accessibility smoke checks; test mode prevents scrolling.
+
+Milestone 7 — Export & packaging (deliverable: CSV/JSON/SPSS/PDF + docs)
+
+Implement exports for CSV & JSON. Provide a script or instructions for generating SPSS .sav from exported JSON (or implement .sav creation if feasible). Implement PDF summary generation (client-side). Add sample dataset and README. Provide a minimal in-app protocol guide page.
+
+Acceptance: exported CSV loaded by Excel; JSON loads into provided sample analysis script; PDF contains calibration metadata.
+
+Milestone 8 — Tests & field QA instructions (deliverable: test suite + QA doc)
+
+Add unit tests for all algorithms, time computation and cleaning. Add a small E2E test (Playwright or Puppeteer) that simulates user running a 5-trial session (mocking performance.now where needed). Provide a QA checklist for field pilot (instructions for El Bayadh schools/clubs).
+
+Acceptance: CI runs tests and passes. QA doc explains how to run pilot and what to record.
+
+Milestone 9 — Optional: Cloud sync & coach dashboard (deliverable: Supabase integration)
+
+Add optional cloud sync, coaching dashboard showing multiple athletes, export permissions. (This is optional; implement only after core features validated).
+
+Coding & delivery standards (must follow):
+
+TypeScript throughout. No any except where explicitly approved and documented. Use strict TS config.
+
+Follow DRY principles and modular design. Keep TestRunner engine separate from UI components.
+
+Code must pass Prettier and ESLint on commit (Husky). Commit messages follow conventional commits.
+
+Provide comprehensive types for trial objects, session objects, and exports.
+
+Document public functions with JSDoc/TSDoc.
+
+Make UI components testable and small. Avoid heavy third-party charts unless necessary; prefer lightweight charting or canvas.
+
+All timing code must use performance.now() and RAF; do not use Date.now() for interval timing.
+
+Implement automated unit tests for timing utilities and cleaning logic (Vitest/Jest). Add test coverage badge.
+
+Provide an accessible, mobile-first UI that works offline and is installable.
