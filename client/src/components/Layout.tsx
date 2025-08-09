@@ -40,11 +40,11 @@ export default function Layout({ children }: LayoutProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200"
+          className="p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 text-gray-700 dark:text-gray-300"
           onClick={() => setLocation('/settings')}
           data-testid="button-settings"
         >
-          <Settings className="h-5 w-5" />
+          <Settings className="h-5 w-5 text-gray-700 dark:text-gray-300" />
         </Button>
       </header>
 

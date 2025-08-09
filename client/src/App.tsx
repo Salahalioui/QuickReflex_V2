@@ -15,7 +15,7 @@ import Results from "@/pages/Results";
 import Settings from "@/pages/Settings";
 
 function App() {
-  const { loadProfiles, isCalibrated } = useStore();
+  const { loadProfiles, isCalibrated, settings } = useStore();
 
   useEffect(() => {
     // Initialize database and load data
@@ -30,6 +30,15 @@ function App() {
     
     initializeApp();
   }, [loadProfiles]);
+
+  // Dark mode implementation
+  useEffect(() => {
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.darkMode]);
 
   return (
     <QueryClientProvider client={queryClient}>

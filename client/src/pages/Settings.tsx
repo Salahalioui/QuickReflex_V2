@@ -108,7 +108,7 @@ export default function Settings() {
 
   return (
     <div className="p-4 space-y-6">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Settings</h2>
+      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Settings</h2>
 
       {/* Profile Section */}
       <Card>
@@ -201,8 +201,8 @@ export default function Settings() {
 
           <div className="flex items-center justify-between">
             <div>
-              <div className="font-medium">Dark Mode</div>
-              <div className="text-sm text-gray-600">Use dark theme</div>
+              <div className="font-medium text-gray-900 dark:text-gray-100">Dark Mode</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Use dark theme</div>
             </div>
             <Switch
               checked={settings.darkMode}
@@ -231,7 +231,7 @@ export default function Settings() {
                 <div className="flex justify-between">
                   <span>Last Calibrated:</span>
                   <span data-testid="text-last-calibrated">
-                    {currentProfile.calibrationTimestamp.toLocaleDateString()}
+                    {new Date(currentProfile.calibrationTimestamp).toLocaleDateString()}
                   </span>
                 </div>
               </div>

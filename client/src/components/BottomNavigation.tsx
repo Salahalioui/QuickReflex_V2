@@ -62,7 +62,7 @@ export default function BottomNavigation() {
               <span 
                 className={cn(
                   "material-icons block mx-auto text-lg transition-all duration-200",
-                  isActive ? item.color : "text-gray-400 dark:text-gray-500"
+                  isActive ? item.color : "text-gray-500 dark:text-gray-400"
                 )}
               >
                 {item.icon}
@@ -72,7 +72,7 @@ export default function BottomNavigation() {
                   "text-xs mt-1 block font-medium transition-all duration-200",
                   isActive 
                     ? `${item.color} font-semibold` 
-                    : "text-gray-600 dark:text-gray-400"
+                    : "text-gray-700 dark:text-gray-300"
                 )}
               >
                 {item.label}

@@ -143,7 +143,7 @@
     background: var(--background-app);
   }
 
-  /* Material Icons styling */
+  /* Material Icons styling with better contrast */
   .material-icons {
     font-family: 'Material Icons';
     font-weight: normal;
@@ -158,6 +158,20 @@
     direction: ltr;
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
+    color: inherit; /* Inherit color from parent for better contrast */
+  }
+  
+  /* Button and icon contrast improvements */
+  button .material-icons {
+    color: inherit;
+  }
+  
+  .text-gray-400 {
+    color: hsl(215, 10%, 50%) !important; /* Darker gray for better visibility */
+  }
+  
+  .dark .text-gray-400 {
+    color: hsl(215, 15%, 65%) !important; /* Lighter gray for dark mode */
   }
 
   /* Enhanced color utilities with performance colors */
