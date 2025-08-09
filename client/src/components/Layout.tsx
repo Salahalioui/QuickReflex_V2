@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
-import { useStore } from '@/store/useStore';
-import BottomNavigation from './BottomNavigation';
-import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { ReactNode } from "react";
+import { useStore } from "@/store/useStore";
+import BottomNavigation from "./BottomNavigation";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,8 +12,8 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { currentProfile } = useStore();
   const [location, setLocation] = useLocation();
-  
-  const isTestRunning = location === '/test/running';
+
+  const isTestRunning = location === "/test/running";
 
   if (isTestRunning) {
     // Full-screen test mode without navigation
@@ -33,7 +33,9 @@ export default function Layout({ children }: LayoutProps) {
               QuickReflex
             </h1>
             <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
-              {currentProfile ? `${currentProfile.name}` : 'No Profile Selected'}
+              {currentProfile
+                ? `${currentProfile.name}`
+                : "No Profile Selected"}
             </p>
           </div>
         </div>
@@ -41,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
           variant="ghost"
           size="sm"
           className="p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 text-gray-700 dark:text-gray-300"
-          onClick={() => setLocation('/settings')}
+          onClick={() => setLocation("/settings")}
           data-testid="button-settings"
         >
           <Settings className="h-5 w-5 text-gray-700 dark:text-gray-300" />
@@ -49,9 +51,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto pb-20">{children}</main>
 
       {/* Bottom Navigation */}
       <BottomNavigation />

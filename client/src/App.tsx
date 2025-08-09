@@ -11,6 +11,7 @@ import Layout from "@/components/Layout";
 import Dashboard from "@/pages/Dashboard";
 import Calibration from "@/pages/Calibration";
 import TestModule from "@/pages/TestModule";
+import TestSelect from "@/pages/TestSelect";
 import Results from "@/pages/Results";
 import Settings from "@/pages/Settings";
 
@@ -56,6 +57,7 @@ function App() {
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/calibration" component={Calibration} />
+              <Route path="/test/select" component={TestSelect} />
               <Route path="/test/:type" component={TestModule} />
               <Route path="/results" component={Results} />
               <Route path="/settings" component={Settings} />

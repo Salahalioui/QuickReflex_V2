@@ -206,6 +206,21 @@
   .dark input:disabled, .dark select:disabled, .dark textarea:disabled {
     background-color: hsl(230, 15%, 12%) !important;
   }
+  
+  /* Remove borders from header icons */
+  button[data-testid="button-settings"] {
+    border: none !important;
+    background: transparent !important;
+  }
+  
+  /* Remove borders from navigation menu items */
+  button[data-testid^="nav-"], 
+  .fixed button[data-testid^="nav-"],
+  nav button,
+  [role="tablist"] button {
+    border: none !important;
+    background: transparent !important;
+  }
 }
 
 @layer utilities {
