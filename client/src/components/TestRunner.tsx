@@ -1,0 +1,566 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useStore } from '@/store/useStore';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { 
+  getHighPrecisionTime, 
+  getRandomISI, 
+  recordResponse, 
+  startCueWithRAF,
+  freezeNonEssentialRendering,
+  preloadAudio 
+} from '@/lib/timing';
+import { cleanReactionTimes } from '@/lib/timing';
+import type { TestConfiguration, Trial } from '@/types';
+import { useLocation } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
+
+interface TestRunnerProps {
+  configuration: TestConfiguration;
+  onComplete: () => void;
+}
+
+interface TestState {
+  phase: 'instructions' | 'practice' | 'break' | 'testing' | 'complete';
+  currentTrial: number;
+  totalTrials: number;
+  showCue: boolean;
+  awaitingResponse: boolean;
+  cueStartTime: number;
+  isPractice: boolean;
+  practiceTrialsCompleted: number;
+  stimulusDetail?: string;
+  showFeedback?: boolean;
+  feedbackMessage?: string;
+  isBreak?: boolean;
+}
+
+export default function TestRunner({ configuration, onComplete }: TestRunnerProps) {
+  const { 
+    currentProfile, 
+    recordTrial, 
+    settings,
+    calibrationData 
+  } = useStore();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  const [testState, setTestState] = useState<TestState>({
+    phase: 'instructions',
+    currentTrial: 0,
+    totalTrials: configuration.totalTrials,
+    showCue: false,
+    awaitingResponse: false,
+    cueStartTime: 0,
+    isPractice: true,
+    practiceTrialsCompleted: 0,
+  });
+
+  const cueElementRef = useRef<HTMLDivElement>(null);
+  const responseAreaRef = useRef<HTMLDivElement>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const audioElementsRef = useRef<HTMLAudioElement[]>([]);
+  const trialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const unfreezeRenderingRef = useRef<(() => void) | null>(null);
+
+  // Preload audio files for auditory tests
+  useEffect(() => {
+    if (configuration.stimulusType === 'auditory') {
+      const loadAudio = async () => {
+        try {
+          const audioUrls = ['/audio/beep-high.mp3', '/audio/beep-low.mp3'];
+          audioElementsRef.current = await preloadAudio(audioUrls);
+        } catch (error) {
+          console.warn('Failed to preload audio:', error);
+        }
+      };
+      loadAudio();
+    }
+  }, [configuration.stimulusType]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) cleanupRef.current();
+      if (trialTimeoutRef.current) clearTimeout(trialTimeoutRef.current);
+      if (unfreezeRenderingRef.current) unfreezeRenderingRef.current();
+    };
+  }, []);
+
+  const playAudioCue = useCallback((frequency: 'high' | 'low' = 'high') => {
+    if (audioElementsRef.current.length > 0) {
+      const audioIndex = frequency === 'high' ? 0 : 1;
+      const audio = audioElementsRef.current[audioIndex];
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(console.warn);
+      }
+    }
+  }, []);
+
+  const triggerVibration = useCallback(() => {
+    if (settings.vibrationEnabled && navigator.vibrate) {
+      navigator.vibrate(100);
+    }
+  }, [settings.vibrationEnabled]);
+
+  const generateStimulusDetail = useCallback(() => {
+    switch (configuration.type) {
+      case 'CRT_2':
+        return Math.random() < 0.5 ? 'left' : 'right';
+      case 'CRT_4':
+        const options = ['up', 'down', 'left', 'right'];
+        return options[Math.floor(Math.random() * options.length)];
+      case 'GO_NO_GO':
+        return Math.random() < 0.7 ? 'go' : 'nogo'; // 70% go trials
+      default:
+        return 'stimulus';
+    }
+  }, [configuration.type]);
+
+  const showStimulus = useCallback((stimulusDetail: string) => {
+    if (!cueElementRef.current) return;
+
+    const cueElement = cueElementRef.current;
+    
+    // Configure visual stimulus based on test type
+    switch (configuration.type) {
+      case 'SRT':
+        if (configuration.stimulusType === 'visual') {
+          cueElement.style.backgroundColor = '#FF0000';
+          cueElement.style.borderRadius = '50%';
+        }
+        break;
+        
+      case 'CRT_2':
+        if (stimulusDetail === 'left') {
+          cueElement.style.backgroundColor = '#0000FF';
+          cueElement.style.transform = 'translateX(-50px)';
+        } else {
+          cueElement.style.backgroundColor = '#00FF00';
+          cueElement.style.transform = 'translateX(50px)';
+        }
+        break;
+        
+      case 'CRT_4':
+        const colors = { up: '#FF0000', down: '#0000FF', left: '#00FF00', right: '#FFFF00' };
+        const positions = { 
+          up: 'translateY(-50px)', 
+          down: 'translateY(50px)', 
+          left: 'translateX(-50px)', 
+          right: 'translateX(50px)' 
+        };
+        cueElement.style.backgroundColor = colors[stimulusDetail as keyof typeof colors];
+        cueElement.style.transform = positions[stimulusDetail as keyof typeof positions];
+        break;
+        
+      case 'GO_NO_GO':
+        if (stimulusDetail === 'go') {
+          cueElement.style.backgroundColor = '#00FF00';
+          cueElement.textContent = 'GO';
+        } else {
+          cueElement.style.backgroundColor = '#FF0000';
+          cueElement.textContent = 'STOP';
+        }
+        break;
+    }
+
+    // Show visual cue and handle audio/tactile
+    const onCueDisplayed = (timestamp: number) => {
+      setTestState(prev => ({ 
+        ...prev, 
+        showCue: true, 
+        awaitingResponse: true, 
+        cueStartTime: timestamp 
+      }));
+
+      // Audio stimulus
+      if (configuration.stimulusType === 'auditory') {
+        if (configuration.type === 'CRT_2') {
+          playAudioCue(stimulusDetail === 'left' ? 'low' : 'high');
+        } else {
+          playAudioCue();
+        }
+      }
+
+      // Tactile stimulus
+      if (configuration.stimulusType === 'tactile') {
+        triggerVibration();
+      }
+    };
+
+    cleanupRef.current = startCueWithRAF(cueElement, onCueDisplayed);
+  }, [configuration, playAudioCue, triggerVibration]);
+
+  const handleResponse = useCallback(async (event: PointerEvent) => {
+    if (!testState.awaitingResponse) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const timing = recordResponse(testState.cueStartTime, calibrationData.deviceLatencyOffsetMs);
+    
+    // Determine accuracy for Go/No-Go tests
+    let accuracy: boolean | undefined;
+    if (configuration.type === 'GO_NO_GO') {
+      accuracy = testState.stimulusDetail === 'go';
+    }
+
+    // Hide stimulus
+    setTestState(prev => ({ 
+      ...prev, 
+      showCue: false, 
+      awaitingResponse: false,
+      showFeedback: prev.isPractice,
+      feedbackMessage: prev.isPractice ? 
+        (timing.reactionTime < 100 ? 'Too fast!' : 
+         timing.reactionTime > 1000 ? 'Too slow!' : 
+         'Good!') : undefined
+    }));
+
+    if (cueElementRef.current) {
+      cueElementRef.current.style.visibility = 'hidden';
+      cueElementRef.current.style.backgroundColor = '';
+      cueElementRef.current.style.transform = '';
+      cueElementRef.current.textContent = '';
+    }
+
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+
+    // Record trial
+    try {
+      await recordTrial({
+        trialNumber: testState.currentTrial + 1,
+        stimulusType: configuration.stimulusType,
+        stimulusDetail: testState.stimulusDetail || '',
+        cueTimestamp: testState.cueStartTime,
+        responseTimestamp: timing.endTime,
+        rtRaw: timing.reactionTime,
+        rtCorrected: timing.correctedReactionTime,
+        excludedFlag: false,
+        exclusionReason: null,
+        isPractice: testState.isPractice,
+        accuracy,
+      });
+    } catch (error) {
+      console.error('Failed to record trial:', error);
+    }
+
+    // Continue to next trial after feedback delay
+    setTimeout(() => {
+      if (testState.isPractice) {
+        const practiceCompleted = testState.practiceTrialsCompleted + 1;
+        if (practiceCompleted >= configuration.practiceTrials) {
+          setTestState(prev => ({ 
+            ...prev, 
+            phase: 'break',
+            showFeedback: false,
+            isBreak: true
+          }));
+        } else {
+          setTestState(prev => ({ 
+            ...prev, 
+            practiceTrialsCompleted: practiceCompleted,
+            showFeedback: false
+          }));
+          startNextTrial();
+        }
+      } else {
+        const nextTrial = testState.currentTrial + 1;
+        if (nextTrial >= testState.totalTrials) {
+          setTestState(prev => ({ ...prev, phase: 'complete', showFeedback: false }));
+        } else {
+          setTestState(prev => ({ 
+            ...prev, 
+            currentTrial: nextTrial,
+            showFeedback: false
+          }));
+          startNextTrial();
+        }
+      }
+    }, testState.isPractice ? 1500 : 500);
+  }, [testState, configuration, calibrationData.deviceLatencyOffsetMs, recordTrial]);
+
+  const startNextTrial = useCallback(() => {
+    if (unfreezeRenderingRef.current) {
+      unfreezeRenderingRef.current();
+    }
+    unfreezeRenderingRef.current = freezeNonEssentialRendering();
+
+    const stimulusDetail = generateStimulusDetail();
+    setTestState(prev => ({ ...prev, stimulusDetail }));
+
+    const isiDelay = getRandomISI(configuration.isiMin, configuration.isiMax);
+    
+    trialTimeoutRef.current = setTimeout(() => {
+      showStimulus(stimulusDetail);
+    }, isiDelay);
+  }, [configuration, generateStimulusDetail, showStimulus]);
+
+  const startPractice = () => {
+    setTestState(prev => ({ ...prev, phase: 'practice', isPractice: true }));
+    startNextTrial();
+  };
+
+  const startMainTest = () => {
+    setTestState(prev => ({ 
+      ...prev, 
+      phase: 'testing', 
+      isPractice: false, 
+      currentTrial: 0,
+      isBreak: false
+    }));
+    startNextTrial();
+  };
+
+  const handleComplete = () => {
+    if (unfreezeRenderingRef.current) {
+      unfreezeRenderingRef.current();
+    }
+    onComplete();
+  };
+
+  const handleAbort = () => {
+    if (cleanupRef.current) cleanupRef.current();
+    if (trialTimeoutRef.current) clearTimeout(trialTimeoutRef.current);
+    if (unfreezeRenderingRef.current) unfreezeRenderingRef.current();
+    setLocation('/');
+  };
+
+  // Handle pointer events
+  useEffect(() => {
+    const responseArea = responseAreaRef.current;
+    if (!responseArea || testState.phase !== 'testing' && testState.phase !== 'practice') return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      handleResponse(event);
+    };
+
+    responseArea.addEventListener('pointerdown', handlePointerDown, { passive: false });
+    
+    return () => {
+      responseArea.removeEventListener('pointerdown', handlePointerDown);
+    };
+  }, [testState.phase, handleResponse]);
+
+  const getInstructions = () => {
+    const testName = {
+      'SRT': 'Simple Reaction Time',
+      'CRT_2': '2-Choice Reaction Time', 
+      'CRT_4': '4-Choice Reaction Time',
+      'GO_NO_GO': 'Go/No-Go Test'
+    }[configuration.type];
+
+    const stimulusName = {
+      'visual': 'Visual',
+      'auditory': 'Auditory', 
+      'tactile': 'Tactile'
+    }[configuration.stimulusType];
+
+    return (
+      <div className="text-center text-white space-y-6">
+        <h1 className="text-3xl font-bold">{testName}</h1>
+        <h2 className="text-xl">{stimulusName} Stimulus</h2>
+        
+        <div className="space-y-4 text-lg">
+          {configuration.type === 'SRT' && (
+            <p>Tap the screen as quickly as possible when you see/hear/feel the stimulus.</p>
+          )}
+          
+          {configuration.type === 'CRT_2' && (
+            <div>
+              <p>Tap the screen when you see the stimulus:</p>
+              <p>• Blue (left side) = Tap left</p>
+              <p>• Green (right side) = Tap right</p>
+            </div>
+          )}
+          
+          {configuration.type === 'CRT_4' && (
+            <div>
+              <p>Tap the screen when you see the colored stimulus:</p>
+              <p>• Red (up) • Blue (down) • Green (left) • Yellow (right)</p>
+            </div>
+          )}
+          
+          {configuration.type === 'GO_NO_GO' && (
+            <div>
+              <p>Tap the screen when you see "GO" (green)</p>
+              <p>DO NOT tap when you see "STOP" (red)</p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <p>Practice trials: {configuration.practiceTrials}</p>
+          <p>Test trials: {configuration.totalTrials}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const progress = testState.isPractice 
+    ? (testState.practiceTrialsCompleted / configuration.practiceTrials) * 100
+    : (testState.currentTrial / testState.totalTrials) * 100;
+
+  if (testState.phase === 'instructions') {
+    return (
+      <div className="test-mode bg-black text-white flex flex-col items-center justify-center p-8">
+        {getInstructions()}
+        
+        <div className="mt-8 space-y-4">
+          <Button 
+            size="lg" 
+            onClick={startPractice}
+            data-testid="button-start-practice"
+          >
+            Start Practice
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleAbort}
+            data-testid="button-abort-test"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (testState.phase === 'break') {
+    return (
+      <div className="test-mode bg-black text-white flex flex-col items-center justify-center p-8">
+        <div className="text-center space-y-6">
+          <h2 className="text-2xl font-bold">Practice Complete</h2>
+          <p className="text-lg">
+            Great! You completed {configuration.practiceTrials} practice trials.
+          </p>
+          <p>
+            Now you'll begin the main test with {configuration.totalTrials} trials.
+          </p>
+          <p className="text-yellow-400">
+            Remember: Be as fast and accurate as possible!
+          </p>
+        </div>
+        
+        <div className="mt-8 space-y-4">
+          <Button 
+            size="lg" 
+            onClick={startMainTest}
+            data-testid="button-start-main-test"
+          >
+            Start Main Test
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleAbort}
+            data-testid="button-abort-test"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (testState.phase === 'complete') {
+    return (
+      <div className="test-mode bg-black text-white flex flex-col items-center justify-center p-8">
+        <div className="text-center space-y-6">
+          <span className="material-icons text-6xl text-green-400 mb-4">check_circle</span>
+          <h2 className="text-2xl font-bold">Test Complete!</h2>
+          <p className="text-lg">
+            You completed {testState.totalTrials} trials successfully.
+          </p>
+        </div>
+        
+        <div className="mt-8">
+          <Button 
+            size="lg" 
+            onClick={handleComplete}
+            data-testid="button-view-results"
+          >
+            View Results
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="test-mode bg-black text-white" ref={responseAreaRef}>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 p-4 z-10">
+        <div className="flex items-center justify-between text-white">
+          <div>
+            <h2 className="text-lg font-bold">
+              {configuration.type} - {configuration.stimulusType}
+            </h2>
+            <p className="text-sm">
+              {testState.isPractice ? 'Practice' : 'Test'} Trial{' '}
+              {testState.isPractice 
+                ? `${testState.practiceTrialsCompleted + 1} of ${configuration.practiceTrials}`
+                : `${testState.currentTrial + 1} of ${testState.totalTrials}`
+              }
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleAbort}
+            data-testid="button-abort-test"
+          >
+            Exit
+          </Button>
+        </div>
+        
+        <Progress 
+          value={progress} 
+          className="mt-2" 
+          data-testid="progress-test"
+        />
+      </div>
+
+      {/* Main test area */}
+      <div className="flex flex-col items-center justify-center h-full">
+        {testState.showFeedback && testState.feedbackMessage && (
+          <div className="text-2xl font-bold mb-8" data-testid="text-feedback">
+            {testState.feedbackMessage}
+          </div>
+        )}
+
+        {!testState.showCue && !testState.showFeedback && (
+          <div className="text-center space-y-4">
+            <div className="text-xl">Get ready...</div>
+            {configuration.type === 'SRT' && (
+              <div>Tap anywhere when you see the stimulus</div>
+            )}
+          </div>
+        )}
+
+        {/* Cue display area */}
+        <div 
+          ref={cueElementRef}
+          className="w-32 h-32 border-4 border-gray-600 rounded-full flex items-center justify-center text-2xl font-bold"
+          style={{ 
+            visibility: testState.showCue ? 'visible' : 'hidden',
+            backgroundColor: testState.showCue ? '#FF0000' : 'transparent'
+          }}
+          data-testid="cue-stimulus"
+        />
+
+        {testState.awaitingResponse && (
+          <div className="mt-8 text-lg text-center" data-testid="text-instruction">
+            {configuration.type === 'GO_NO_GO' && testState.stimulusDetail === 'nogo' 
+              ? "DON'T TAP!" 
+              : "TAP NOW!"
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,70 @@
+{
+  "name": "QuickReflex - Reaction Time Testing",
+  "short_name": "QuickReflex",
+  "description": "Research-grade reaction time testing and training PWA for athletes, coaches, and researchers",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1976D2",
+  "background_color": "#FAFAFA",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "sports", "productivity", "education"],
+  "lang": "en",
+  "scope": "/",
+  "id": "quickreflex-rt-testing",
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start SRT Test",
+      "short_name": "SRT",
+      "description": "Quick Simple Reaction Time test",
+      "url": "/test/srt",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "View Results",
+      "short_name": "Results", 
+      "description": "View your test results",
+      "url": "/results",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "features": [
+    "offline",
+    "high-precision-timing",
+    "data-export",
+    "scientific-grade"
+  ]
+}
