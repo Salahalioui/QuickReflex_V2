@@ -280,6 +280,9 @@ export default function Results() {
                       <th className="text-left py-2">Trial</th>
                       <th className="text-left py-2">RT (ms)</th>
                       <th className="text-left py-2">Corrected</th>
+                      {(selectedResult.type === 'CRT_2' || selectedResult.type === 'CRT_4' || selectedResult.type === 'GO_NO_GO') && (
+                        <th className="text-left py-2">Accuracy</th>
+                      )}
                       <th className="text-left py-2">Status</th>
                     </tr>
                   </thead>
@@ -295,6 +298,23 @@ export default function Results() {
                           <td className="py-2">{trial.trialNumber}</td>
                           <td className="py-2">{trial.rtRaw?.toFixed(0) || '--'}</td>
                           <td className="py-2">{trial.rtCorrected?.toFixed(0) || '--'}</td>
+                          {(selectedResult.type === 'CRT_2' || selectedResult.type === 'CRT_4' || selectedResult.type === 'GO_NO_GO') && (
+                            <td className="py-2">
+                              {trial.accuracy !== undefined ? (
+                                <span 
+                                  className={`px-2 py-1 text-xs rounded ${
+                                    trial.accuracy 
+                                      ? 'bg-success/10 text-success' 
+                                      : 'bg-error/10 text-error'
+                                  }`}
+                                >
+                                  {trial.accuracy ? 'Correct' : 'Incorrect'}
+                                </span>
+                              ) : (
+                                '--'
+                              )}
+                            </td>
+                          )}
                           <td className="py-2">
                             <span 
                               className={`px-2 py-1 text-xs rounded ${

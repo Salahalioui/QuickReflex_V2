@@ -251,10 +251,49 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
 
     const timing = recordResponse(testState.cueStartTime, calibrationData.deviceLatencyOffsetMs);
     
-    // Determine accuracy for Go/No-Go tests
+    // Determine accuracy for CRT and Go/No-Go tests
     let accuracy: boolean | undefined;
     if (configuration.type === 'GO_NO_GO') {
       accuracy = testState.stimulusDetail === 'go';
+    } else if (configuration.type === 'CRT_2') {
+      // For 2-choice CRT: left side = left stimulus, right side = right stimulus
+      const isLeftSide = event.clientX < window.innerWidth / 2;
+      const correctResponse = testState.stimulusDetail === 'left' ? isLeftSide : !isLeftSide;
+      accuracy = correctResponse;
+    } else if (configuration.type === 'CRT_4') {
+      // For 4-choice CRT: determine response area based on touch/click position
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const threshold = 100; // pixels from center
+      
+      let responseDirection: string;
+      if (event.clientY < centerY - threshold) {
+        responseDirection = 'up';
+      } else if (event.clientY > centerY + threshold) {
+        responseDirection = 'down';
+      } else if (event.clientX < centerX - threshold) {
+        responseDirection = 'left';
+      } else if (event.clientX > centerX + threshold) {
+        responseDirection = 'right';
+      } else {
+        responseDirection = 'center'; // Invalid response area
+      }
+      
+      accuracy = responseDirection === testState.stimulusDetail;
+    }
+
+    // Generate feedback message based on accuracy and timing
+    let feedbackMessage: string | undefined;
+    if (testState.isPractice) {
+      if (accuracy === false) {
+        feedbackMessage = 'Incorrect! Try again.';
+      } else if (timing.reactionTime < 100) {
+        feedbackMessage = 'Too fast!';
+      } else if (timing.reactionTime > 1000) {
+        feedbackMessage = 'Too slow!';
+      } else {
+        feedbackMessage = 'Good!';
+      }
     }
 
     // Hide stimulus
@@ -263,10 +302,7 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
       showCue: false, 
       awaitingResponse: false,
       showFeedback: prev.isPractice,
-      feedbackMessage: prev.isPractice ? 
-        (timing.reactionTime < 100 ? 'Too fast!' : 
-         timing.reactionTime > 1000 ? 'Too slow!' : 
-         'Good!') : undefined
+      feedbackMessage
     }));
 
     if (cueElementRef.current) {
@@ -438,14 +474,20 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
                 <div className="flex justify-center space-x-8 mt-4">
                   <div className="text-center">
                     <div className="w-12 h-12 bg-blue-600 rounded-lg mx-auto mb-2"></div>
-                    <p>BLUE = Tap Left</p>
+                    <p>BLUE = Tap Left Side</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2"></div>
-                    <p>GREEN = Tap Right</p>
+                    <p>GREEN = Tap Right Side</p>
                   </div>
                 </div>
-                <p className="text-yellow-400 mt-4">Respond as quickly and accurately as possible!</p>
+                <div className="mt-4 p-3 bg-yellow-900/30 rounded-lg">
+                  <p className="text-yellow-400 text-sm">
+                    ⚠️ Tap the LEFT or RIGHT side of the screen to match the color position.
+                    Wrong side = Incorrect response!
+                  </p>
+                </div>
+                <p className="text-green-400 mt-4">Respond as quickly and accurately as possible!</p>
               </div>
             </div>
           )}
@@ -454,26 +496,32 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
             <div className="space-y-4">
               <p className="text-xl font-semibold">Four-Choice Response Test</p>
               <div className="space-y-2">
-                <p>When a colored square appears in a position:</p>
+                <p>When a colored square appears, tap the corresponding area:</p>
                 <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mt-4">
                   <div className="text-center">
                     <div className="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2"></div>
-                    <p>RED = UP</p>
+                    <p>RED = Tap TOP</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 bg-blue-600 rounded-lg mx-auto mb-2"></div>
-                    <p>BLUE = DOWN</p>
+                    <p>BLUE = Tap BOTTOM</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2"></div>
-                    <p>GREEN = LEFT</p>
+                    <p>GREEN = Tap LEFT</p>
                   </div>
                   <div className="text-center">
                     <div className="w-12 h-12 bg-yellow-500 rounded-lg mx-auto mb-2"></div>
-                    <p>YELLOW = RIGHT</p>
+                    <p>YELLOW = Tap RIGHT</p>
                   </div>
                 </div>
-                <p className="text-yellow-400 mt-4">Match the color to the direction quickly!</p>
+                <div className="mt-4 p-3 bg-yellow-900/30 rounded-lg">
+                  <p className="text-yellow-400 text-sm">
+                    ⚠️ Tap the screen area that matches the color position.
+                    Wrong area = Incorrect response!
+                  </p>
+                </div>
+                <p className="text-green-400 mt-4">Match the color to the direction quickly!</p>
               </div>
             </div>
           )}
