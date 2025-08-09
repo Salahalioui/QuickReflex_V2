@@ -85,7 +85,27 @@ export const useStore = create<AppStore>()(
       setCurrentPage: (page) => set({ currentPage: page }),
       
       // Profile actions
-      setCurrentProfile: (profile) => set({ currentProfile: profile }),
+      setCurrentProfile: (profile) => {
+        // Check if profile has valid calibration data
+        const isProfileCalibrated = profile && 
+          profile.calibrationTimestamp && 
+          profile.refreshRateHz && 
+          profile.touchSamplingHz && 
+          profile.deviceLatencyOffsetMs !== undefined;
+        
+        set({ 
+          currentProfile: profile,
+          isCalibrated: !!isProfileCalibrated,
+          // Update calibration data from profile if available
+          ...(isProfileCalibrated && {
+            calibrationData: {
+              refreshRateHz: profile.refreshRateHz,
+              touchSamplingHz: profile.touchSamplingHz,
+              deviceLatencyOffsetMs: profile.deviceLatencyOffsetMs,
+            }
+          })
+        });
+      },
       
       createProfile: async (profileData) => {
         const profile = await db.createProfile({
@@ -107,6 +127,17 @@ export const useStore = create<AppStore>()(
       updateProfile: async (id, profileData) => {
         await db.updateProfile(id, profileData);
         await get().loadProfiles();
+        
+        // If updating the current profile, refresh its calibration status
+        const currentProfile = get().currentProfile;
+        if (currentProfile && currentProfile.id === id) {
+          // Reload the updated profile
+          const profiles = await db.getProfiles();
+          const updatedProfile = profiles.find(p => p.id === id);
+          if (updatedProfile) {
+            get().setCurrentProfile(updatedProfile);
+          }
+        }
       },
       
       loadProfiles: async () => {
@@ -114,7 +145,8 @@ export const useStore = create<AppStore>()(
         set({ profiles });
         
         if (!get().currentProfile && profiles.length > 0) {
-          set({ currentProfile: profiles[0] });
+          // Use setCurrentProfile to properly handle calibration status
+          get().setCurrentProfile(profiles[0]);
         }
       },
       
