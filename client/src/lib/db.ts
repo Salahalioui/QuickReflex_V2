@@ -191,6 +191,31 @@ class IndexedDBStorage {
     });
   }
 
+  async updateTrial(trialId: string, updates: Partial<Trial>): Promise<Trial> {
+    const db = await this.ensureDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['trials'], 'readwrite');
+      const store = transaction.objectStore('trials');
+      const getRequest = store.get(trialId);
+      
+      getRequest.onerror = () => reject(getRequest.error);
+      getRequest.onsuccess = () => {
+        const trial = getRequest.result;
+        if (!trial) {
+          reject(new Error('Trial not found'));
+          return;
+        }
+        
+        const updatedTrial = { ...trial, ...updates };
+        const putRequest = store.put(updatedTrial);
+        
+        putRequest.onerror = () => reject(putRequest.error);
+        putRequest.onsuccess = () => resolve(updatedTrial);
+      };
+    });
+  }
+
   // Results aggregation
   async getRecentResults(profileId: string, limit: number = 10): Promise<TestResult[]> {
     const db = await this.ensureDB();

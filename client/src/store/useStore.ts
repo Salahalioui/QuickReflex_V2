@@ -184,6 +184,36 @@ export const useStore = create<AppStore>()(
         const { currentSession } = get();
         if (!currentSession) return;
         
+        // Get all trials for this session
+        const trials = await db.getTrialsBySession(currentSession.id);
+        
+        // Filter out practice trials for outlier cleaning
+        const testTrials = trials.filter(trial => !trial.isPractice);
+        
+        if (testTrials.length > 0) {
+          // Apply outlier cleaning using the cleanReactionTimes function
+          const { cleanReactionTimes } = await import('@/lib/timing');
+          const cleaningResults = cleanReactionTimes(testTrials, {
+            minRT: 100,
+            maxRT: 1000,
+            removeMinMax: true,
+            stdDeviations: 2.5,
+          });
+          
+          // Update trials with exclusion flags
+          for (let i = 0; i < cleaningResults.length; i++) {
+            const result = cleaningResults[i];
+            const trial = testTrials[result.index];
+            
+            if (result.excluded) {
+              await db.updateTrial(trial.id, {
+                excludedFlag: true,
+                exclusionReason: result.reason || 'Unknown',
+              });
+            }
+          }
+        }
+        
         await db.updateTestSession(currentSession.id, {
           completedAt: new Date(),
           status: 'completed',
