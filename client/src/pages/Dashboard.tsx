@@ -108,7 +108,7 @@ export default function Dashboard() {
               </div>
               <Button 
                 size="sm" 
-                className="ml-4"
+                className="ml-4 text-[#000000]"
                 onClick={() => setLocation('/calibration')}
                 data-testid="button-calibrate"
               >
