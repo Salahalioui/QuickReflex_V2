@@ -171,7 +171,10 @@ export default function Dashboard() {
               <div
                 key={module.id}
                 className={`${module.bgClass} rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] elevation-2 hover:elevation-4 border-2`}
-                onClick={() => setLocation(`/test/${module.id.toLowerCase()}`)}
+                onClick={() => {
+                  const urlPath = module.id === 'GO_NO_GO' ? 'gonogo' : module.id.toLowerCase();
+                  setLocation(`/test/${urlPath}`);
+                }}
                 data-testid={module.testId}
               >
                 <div className="flex items-center justify-between">
