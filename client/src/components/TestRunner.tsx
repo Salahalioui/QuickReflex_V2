@@ -137,6 +137,20 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
 
     const cueElement = cueElementRef.current;
     
+    // Reset all styles to ensure clean state
+    cueElement.style.backgroundColor = 'transparent';
+    cueElement.style.transform = '';
+    cueElement.style.borderRadius = '';
+    cueElement.style.width = '';
+    cueElement.style.height = '';
+    cueElement.style.display = '';
+    cueElement.style.alignItems = '';
+    cueElement.style.justifyContent = '';
+    cueElement.style.fontSize = '';
+    cueElement.style.fontWeight = '';
+    cueElement.style.color = '';
+    cueElement.textContent = '';
+    
     // Configure visual stimulus based on test type
     switch (configuration.type) {
       case 'SRT':
@@ -257,8 +271,17 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
 
     if (cueElementRef.current) {
       cueElementRef.current.style.visibility = 'hidden';
-      cueElementRef.current.style.backgroundColor = '';
+      cueElementRef.current.style.backgroundColor = 'transparent';
       cueElementRef.current.style.transform = '';
+      cueElementRef.current.style.borderRadius = '';
+      cueElementRef.current.style.width = '';
+      cueElementRef.current.style.height = '';
+      cueElementRef.current.style.display = '';
+      cueElementRef.current.style.alignItems = '';
+      cueElementRef.current.style.justifyContent = '';
+      cueElementRef.current.style.fontSize = '';
+      cueElementRef.current.style.fontWeight = '';
+      cueElementRef.current.style.color = '';
       cueElementRef.current.textContent = '';
     }
 
@@ -635,7 +658,7 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
           className="w-32 h-32 border-4 border-gray-600 rounded-full flex items-center justify-center text-2xl font-bold"
           style={{ 
             visibility: testState.showCue ? 'visible' : 'hidden',
-            backgroundColor: testState.showCue ? '#FF0000' : 'transparent'
+            backgroundColor: 'transparent'
           }}
           data-testid="cue-stimulus"
         />
