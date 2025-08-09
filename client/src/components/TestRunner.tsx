@@ -112,11 +112,25 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
         const options = ['up', 'down', 'left', 'right'];
         return options[Math.floor(Math.random() * options.length)];
       case 'GO_NO_GO':
-        return Math.random() < 0.7 ? 'go' : 'nogo'; // 70% go trials
+        // Create predetermined sequence for Go/No-Go to ensure exact distribution
+        if (testState.isPractice) {
+          // For practice: maintain 70/30 ratio randomly
+          return Math.random() < 0.7 ? 'go' : 'nogo';
+        } else {
+          // For main test: use predetermined sequence (28 Go, 12 No-Go)
+          const goNoGoSequence = [
+            ...Array(28).fill('go'),
+            ...Array(12).fill('nogo')
+          ].sort(() => Math.random() - 0.5); // Shuffle the sequence
+          
+          // Use current trial index to get stimulus from sequence
+          const currentIndex = testState.currentTrial % 40;
+          return goNoGoSequence[currentIndex];
+        }
       default:
         return 'stimulus';
     }
-  }, [configuration.type]);
+  }, [configuration.type, testState.isPractice, testState.currentTrial]);
 
   const showStimulus = useCallback((stimulusDetail: string) => {
     if (!cueElementRef.current) return;
@@ -133,33 +147,56 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
         break;
         
       case 'CRT_2':
+        // Precise colors and positioning for 2-choice CRT
+        cueElement.style.borderRadius = '12px';
+        cueElement.style.width = '60px';
+        cueElement.style.height = '60px';
         if (stimulusDetail === 'left') {
-          cueElement.style.backgroundColor = '#0000FF';
-          cueElement.style.transform = 'translateX(-50px)';
+          cueElement.style.backgroundColor = '#0066FF'; // Pure blue
+          cueElement.style.transform = 'translateX(-80px)';
         } else {
-          cueElement.style.backgroundColor = '#00FF00';
-          cueElement.style.transform = 'translateX(50px)';
+          cueElement.style.backgroundColor = '#00CC00'; // Pure green  
+          cueElement.style.transform = 'translateX(80px)';
         }
         break;
         
       case 'CRT_4':
-        const colors = { up: '#FF0000', down: '#0000FF', left: '#00FF00', right: '#FFFF00' };
+        // Precise colors and positioning for 4-choice CRT  
+        const colors = { 
+          up: '#FF3333',    // Red
+          down: '#3366FF',  // Blue
+          left: '#33CC33',  // Green 
+          right: '#FFCC00'  // Yellow
+        };
         const positions = { 
-          up: 'translateY(-50px)', 
-          down: 'translateY(50px)', 
-          left: 'translateX(-50px)', 
-          right: 'translateX(50px)' 
+          up: 'translateY(-80px)', 
+          down: 'translateY(80px)', 
+          left: 'translateX(-80px)', 
+          right: 'translateX(80px)' 
         };
         cueElement.style.backgroundColor = colors[stimulusDetail as keyof typeof colors];
         cueElement.style.transform = positions[stimulusDetail as keyof typeof positions];
+        cueElement.style.borderRadius = '12px';
+        cueElement.style.width = '60px';
+        cueElement.style.height = '60px';
         break;
         
       case 'GO_NO_GO':
+        // Precise colors and styling for Go/No-Go
+        cueElement.style.borderRadius = '12px';
+        cueElement.style.width = '120px';
+        cueElement.style.height = '80px';
+        cueElement.style.display = 'flex';
+        cueElement.style.alignItems = 'center';
+        cueElement.style.justifyContent = 'center';
+        cueElement.style.fontSize = '24px';
+        cueElement.style.fontWeight = 'bold';
+        cueElement.style.color = 'white';
         if (stimulusDetail === 'go') {
-          cueElement.style.backgroundColor = '#00FF00';
+          cueElement.style.backgroundColor = '#00CC00'; // Pure green
           cueElement.textContent = 'GO';
         } else {
-          cueElement.style.backgroundColor = '#FF0000';
+          cueElement.style.backgroundColor = '#FF3333'; // Pure red
           cueElement.textContent = 'STOP';
         }
         break;
@@ -371,24 +408,75 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
           )}
           
           {configuration.type === 'CRT_2' && (
-            <div>
-              <p>Tap the screen when you see the stimulus:</p>
-              <p>• Blue (left side) = Tap left</p>
-              <p>• Green (right side) = Tap right</p>
+            <div className="space-y-4">
+              <p className="text-xl font-semibold">Two-Choice Response Test</p>
+              <div className="space-y-2">
+                <p>When a colored square appears:</p>
+                <div className="flex justify-center space-x-8 mt-4">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-600 rounded-lg mx-auto mb-2"></div>
+                    <p>BLUE = Tap Left</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2"></div>
+                    <p>GREEN = Tap Right</p>
+                  </div>
+                </div>
+                <p className="text-yellow-400 mt-4">Respond as quickly and accurately as possible!</p>
+              </div>
             </div>
           )}
           
           {configuration.type === 'CRT_4' && (
-            <div>
-              <p>Tap the screen when you see the colored stimulus:</p>
-              <p>• Red (up) • Blue (down) • Green (left) • Yellow (right)</p>
+            <div className="space-y-4">
+              <p className="text-xl font-semibold">Four-Choice Response Test</p>
+              <div className="space-y-2">
+                <p>When a colored square appears in a position:</p>
+                <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mt-4">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2"></div>
+                    <p>RED = UP</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-600 rounded-lg mx-auto mb-2"></div>
+                    <p>BLUE = DOWN</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2"></div>
+                    <p>GREEN = LEFT</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-lg mx-auto mb-2"></div>
+                    <p>YELLOW = RIGHT</p>
+                  </div>
+                </div>
+                <p className="text-yellow-400 mt-4">Match the color to the direction quickly!</p>
+              </div>
             </div>
           )}
           
           {configuration.type === 'GO_NO_GO' && (
-            <div>
-              <p>Tap the screen when you see "GO" (green)</p>
-              <p>DO NOT tap when you see "STOP" (red)</p>
+            <div className="space-y-4">
+              <p className="text-xl font-semibold">Inhibition Control Test</p>
+              <div className="space-y-2">
+                <p>You will see two types of signals:</p>
+                <div className="flex justify-center space-x-8 mt-4">
+                  <div className="text-center">
+                    <div className="w-20 h-12 bg-green-500 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <span className="text-white font-bold">GO</span>
+                    </div>
+                    <p className="text-green-400">TAP IMMEDIATELY</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-12 bg-red-500 rounded-lg mx-auto mb-2 flex items-center justify-center">
+                      <span className="text-white font-bold">STOP</span>
+                    </div>
+                    <p className="text-red-400">DO NOT TAP</p>
+                  </div>
+                </div>
+                <p className="text-yellow-400 mt-4">70% will be GO signals, 30% STOP signals</p>
+                <p className="text-sm text-gray-300">Test your ability to inhibit responses!</p>
+              </div>
             </div>
           )}
         </div>
