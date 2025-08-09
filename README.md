@@ -135,8 +135,8 @@ If you use QuickReflex in research, please cite:
 
 ```
 QuickReflex: A Progressive Web App for Research-Grade Reaction Time Testing
-[Your Name/Institution]
-GitHub: https://github.com/yourusername/quickreflex
+[Alioui Salah Dine/Tisemsilt University]
+GitHub: https://github.com/Salahalioui/quickreflex
 ```
 
 ## Support
@@ -147,8 +147,6 @@ GitHub: https://github.com/yourusername/quickreflex
 
 ## Roadmap
 
-- [ ] Additional test protocols (Stroop, Flanker)
-- [ ] Real-time multiplayer testing
 - [ ] Advanced statistical analysis dashboard
 - [ ] Mobile app store deployment
 - [ ] Research study management features
