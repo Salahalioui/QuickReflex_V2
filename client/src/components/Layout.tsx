@@ -21,14 +21,18 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col pwa-container">
       {/* Header */}
-      <header className="bg-white elevation-2 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+      <header className="performance-card elevation-2 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center">
-          <span className="material-icons text-primary text-3xl mr-3">psychology</span>
+          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mr-3 shadow-lg">
+            <span className="material-icons text-white text-xl">bolt</span>
+          </div>
           <div>
-            <h1 className="text-xl font-medium text-gray-900">QuickReflex</h1>
-            <p className="text-xs text-gray-600">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              QuickReflex
+            </h1>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
               {currentProfile ? `${currentProfile.name}` : 'No Profile Selected'}
             </p>
           </div>
@@ -36,7 +40,7 @@ export default function Layout({ children }: LayoutProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="p-2 rounded-full hover:bg-gray-100"
+          className="p-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200"
           onClick={() => setLocation('/settings')}
           data-testid="button-settings"
         >

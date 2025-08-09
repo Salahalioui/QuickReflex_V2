@@ -8,35 +8,39 @@ export default function BottomNavigation() {
     { 
       id: 'home', 
       path: '/', 
-      icon: 'home', 
-      label: 'Home',
+      icon: 'dashboard', 
+      label: 'Dashboard',
+      color: 'text-primary',
       testId: 'nav-home'
     },
     { 
       id: 'tests', 
       path: '/test/select', 
-      icon: 'play_circle', 
+      icon: 'flash_on', 
       label: 'Tests',
+      color: 'text-accent',
       testId: 'nav-tests'
     },
     { 
       id: 'results', 
       path: '/results', 
-      icon: 'analytics', 
+      icon: 'trending_up', 
       label: 'Results',
+      color: 'text-success',
       testId: 'nav-results'
     },
     { 
       id: 'profile', 
       path: '/settings', 
-      icon: 'person', 
-      label: 'Profile',
+      icon: 'tune', 
+      label: 'Settings',
+      color: 'text-secondary',
       testId: 'nav-profile'
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-200 elevation-4">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto performance-card border-t-2 border-primary/10 elevation-4">
       <div className="flex">
         {navItems.map((item) => {
           const isActive = location === item.path || 
@@ -47,26 +51,28 @@ export default function BottomNavigation() {
             <button
               key={item.id}
               className={cn(
-                "flex-1 py-3 px-2 text-center hover:bg-gray-50 transition-colors",
-                isActive && "bg-primary/5"
+                "flex-1 py-3 px-2 text-center transition-all duration-300 rounded-t-xl",
+                isActive 
+                  ? `bg-gradient-to-t from-${item.color.split('-')[1]}/10 to-transparent`
+                  : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
               )}
               onClick={() => setLocation(item.path)}
               data-testid={item.testId}
             >
               <span 
                 className={cn(
-                  "material-icons block mx-auto",
-                  isActive ? "text-primary" : "text-gray-400"
+                  "material-icons block mx-auto text-lg transition-all duration-200",
+                  isActive ? item.color : "text-gray-400 dark:text-gray-500"
                 )}
               >
                 {item.icon}
               </span>
               <span 
                 className={cn(
-                  "text-xs mt-1 block",
+                  "text-xs mt-1 block font-medium transition-all duration-200",
                   isActive 
-                    ? "text-primary font-medium" 
-                    : "text-gray-600"
+                    ? `${item.color} font-semibold` 
+                    : "text-gray-600 dark:text-gray-400"
                 )}
               >
                 {item.label}

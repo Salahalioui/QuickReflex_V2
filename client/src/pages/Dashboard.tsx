@@ -35,32 +35,35 @@ export default function Dashboard() {
   const testModules = [
     {
       id: 'SRT',
-      icon: 'visibility',
+      icon: 'bolt',
       title: 'Simple Reaction Time',
       description: 'Visual, Auditory & Tactile',
       trials: '20 trials',
       duration: '~5 min',
-      color: 'bg-primary/10 text-primary',
+      color: 'bg-speed text-white',
+      bgClass: 'test-module-srt',
       testId: 'button-start-srt'
     },
     {
       id: 'CRT',
-      icon: 'call_split',
+      icon: 'psychology',
       title: 'Choice Reaction Time',
       description: '2-Choice & 4-Choice',
       trials: '40 trials',
       duration: '~8 min',
-      color: 'bg-accent/10 text-accent',
+      color: 'bg-focus text-white',
+      bgClass: 'test-module-crt',
       testId: 'button-start-crt'
     },
     {
       id: 'GO_NO_GO',
-      icon: 'stop_circle',
+      icon: 'center_focus_strong',
       title: 'Go/No-Go',
       description: 'Inhibitory Control',
       trials: '40 trials',
       duration: '~6 min',
-      color: 'bg-secondary/10 text-secondary',
+      color: 'bg-precision text-white',
+      bgClass: 'test-module-gonogo',
       testId: 'button-start-gonogo'
     },
   ];
@@ -117,29 +120,41 @@ export default function Dashboard() {
       )}
 
       {/* Quick Stats */}
-      <Card>
+      <Card className="performance-card elevation-2">
         <CardHeader>
-          <CardTitle>Recent Performance</CardTitle>
+          <CardTitle className="flex items-center">
+            <span className="material-icons mr-2 text-primary">trending_up</span>
+            Recent Performance
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary" data-testid="stat-avg-srt">
+            <div className="text-center p-4 rounded-xl bg-speed/10 border border-pink-200/30">
+              <div className="w-10 h-10 bg-speed rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-icons text-white text-sm">speed</span>
+              </div>
+              <div className="text-2xl font-bold text-speed" data-testid="stat-avg-srt">
                 {stats.avgSRT > 0 ? Math.round(stats.avgSRT) : '--'}
               </div>
-              <div className="text-xs text-gray-600">Avg SRT (ms)</div>
+              <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Avg SRT (ms)</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary" data-testid="stat-sessions">
+            <div className="text-center p-4 rounded-xl bg-focus/10 border border-purple-200/30">
+              <div className="w-10 h-10 bg-focus rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-icons text-white text-sm">psychology</span>
+              </div>
+              <div className="text-2xl font-bold text-focus" data-testid="stat-sessions">
                 {stats.sessions}
               </div>
-              <div className="text-xs text-gray-600">Sessions</div>
+              <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Sessions</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary" data-testid="stat-accuracy">
+            <div className="text-center p-4 rounded-xl bg-precision/10 border border-cyan-200/30">
+              <div className="w-10 h-10 bg-precision rounded-full flex items-center justify-center mx-auto mb-2">
+                <span className="material-icons text-white text-sm">target</span>
+              </div>
+              <div className="text-2xl font-bold text-precision" data-testid="stat-accuracy">
                 {stats.accuracy > 0 ? Math.round(stats.accuracy) : '--'}
               </div>
-              <div className="text-xs text-gray-600">Accuracy %</div>
+              <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Accuracy %</div>
             </div>
           </div>
         </CardContent>
@@ -151,47 +166,47 @@ export default function Dashboard() {
           <CardTitle>Test Modules</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {testModules.map((module) => (
               <div
                 key={module.id}
-                className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                className={`${module.bgClass} rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] elevation-2 hover:elevation-4 border-2`}
                 onClick={() => setLocation(`/test/${module.id.toLowerCase()}`)}
                 data-testid={module.testId}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mr-3 ${module.color}`}>
-                      <span className="material-icons">{module.icon}</span>
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-4 ${module.color} shadow-lg`}>
+                      <span className="material-icons text-xl">{module.icon}</span>
                     </div>
                     <div>
-                      <h4 className="font-medium">{module.title}</h4>
-                      <p className="text-sm text-gray-600">{module.description}</p>
+                      <h4 className="font-semibold text-lg text-gray-800 dark:text-white">{module.title}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">{module.description}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-medium text-success">{module.trials}</div>
-                    <div className="text-xs text-gray-500">{module.duration}</div>
+                    <div className="text-sm font-bold text-gray-700 dark:text-gray-200">{module.trials}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-300 font-medium">{module.duration}</div>
                   </div>
                 </div>
               </div>
             ))}
 
             {/* Battery Mode */}
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+            <div className="bg-energy rounded-xl p-6 shadow-lg border-2 border-yellow-400/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center mr-3">
-                    <span className="material-icons text-primary">playlist_play</span>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                    <span className="material-icons text-xl text-yellow-600">battery_charging_full</span>
                   </div>
                   <div>
-                    <h4 className="font-medium text-primary">Full Battery</h4>
-                    <p className="text-sm text-gray-600">Complete Assessment</p>
+                    <h4 className="font-bold text-lg text-gray-800">Full Battery</h4>
+                    <p className="text-sm text-gray-700 font-medium">Complete Assessment Suite</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium text-primary">All Tests</div>
-                  <div className="text-xs text-gray-500">~20 min</div>
+                  <div className="text-sm font-bold text-gray-800">All Tests</div>
+                  <div className="text-xs text-gray-700 font-medium">~20 min</div>
                 </div>
               </div>
             </div>
