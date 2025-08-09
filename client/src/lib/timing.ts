@@ -204,6 +204,8 @@ export function freezeNonEssentialRendering(): () => void {
   // Return cleanup function
   return () => {
     document.documentElement.style.scrollBehavior = originalScrollBehavior;
-    document.head.removeChild(style);
+    if (style.parentNode) {
+      document.head.removeChild(style);
+    }
   };
 }

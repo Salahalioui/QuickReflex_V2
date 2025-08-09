@@ -229,7 +229,7 @@ export default function Calibration() {
               <div className="flex justify-between">
                 <span>Last Calibrated:</span>
                 <span data-testid="text-calibration-date">
-                  {currentProfile.calibrationTimestamp.toLocaleDateString()}
+                  {new Date(currentProfile.calibrationTimestamp).toLocaleDateString()}
                 </span>
               </div>
             </div>
