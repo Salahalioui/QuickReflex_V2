@@ -83,6 +83,14 @@ export default function Results() {
     }
 
     try {
+      console.log('Starting export process:', {
+        format,
+        selectedResult: selectedResult?.sessionId,
+        trialsCount: selectedResult?.trials?.length || 0,
+        currentProfile: currentProfile?.id,
+        mitData: mitData ? 'Available' : 'Not available'
+      });
+
       const exportData = {
         profile: currentProfile,
         sessions: [{ 
@@ -106,6 +114,13 @@ export default function Results() {
           deviceInfo: navigator.userAgent,
         },
       };
+
+      console.log('Export data prepared:', {
+        profileName: exportData.profile.name,
+        sessionCount: exportData.sessions.length,
+        trialCount: exportData.trials.length,
+        format
+      });
 
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
       const baseFilename = `quickreflex-${selectedResult.type}-${timestamp}`;
@@ -134,7 +149,14 @@ export default function Results() {
         description: `Results exported in ${format.toUpperCase()} format.`,
       });
     } catch (error) {
-      console.error('Export error:', error);
+      console.error('Export error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        selectedResult,
+        currentProfile: currentProfile?.id,
+        format
+      });
       toast({
         title: "Export Failed",
         description: error instanceof Error ? error.message : "Failed to export results.",

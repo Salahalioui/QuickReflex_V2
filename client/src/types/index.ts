@@ -46,6 +46,7 @@ export interface ExportData {
   profile: Profile;
   sessions: TestSession[];
   trials: Trial[];
+  mitData?: MITResult | null;
   metadata: {
     exportDate: string;
     version: string;
