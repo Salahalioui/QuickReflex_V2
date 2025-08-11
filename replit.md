@@ -20,17 +20,25 @@ Preferred communication style: Simple, everyday language.
 - ✅ **Export MIT Integration**: All export formats (CSV, JSON, PDF, SPSS) include MIT data and corrections
 - ✅ **Cross-Modal Scientific Warnings**: Proper research disclaimers for modality comparisons
 
-### Export System Fixes - COMPLETED
+### Export System Enhancements - COMPLETED
 - ✅ **Fixed Date Handling**: Resolved date conversion errors in CSV and PDF exports
 - ✅ **Complete Export Functionality**: All formats (CSV, JSON, PDF, SPSS) working perfectly
 - ✅ **Enhanced Error Logging**: Detailed error reporting for troubleshooting
 - ✅ **MIT Data Inclusion**: Comprehensive MIT metadata in all export formats
+- ✅ **Professional PDF Reports**: Complete redesign with branded headers, footers, and scientific methodology documentation
 
 ### Database and Architecture Improvements - COMPLETED  
 - ✅ **Database Method Restoration**: Fixed missing getTestSessions() database method
 - ✅ **TypeScript Compatibility**: Resolved all type errors and compatibility issues
 - ✅ **Enhanced Data Flow**: Complete MIT data integration from testing → storage → display → export
 - ✅ **Robust Error Handling**: Improved error messages and graceful failure handling
+
+### System Refinements (January 2025) - COMPLETED
+- ✅ **Full Battery Removal**: Completely removed Full Battery test functionality and all associated logic
+- ✅ **Individual Test Focus**: Streamlined to only include separate test modules (SRT, CRT, Go/No-Go, MIT)
+- ✅ **Schema Cleanup**: Updated database schema and type definitions to remove BATTERY test type
+- ✅ **UI Simplification**: Removed Full Battery cards from Dashboard and TestSelect components
+- ✅ **Outlier Method Integration**: Enhanced UI with outlier detection method selection and results display
 
 ## System Architecture
 
@@ -63,20 +71,23 @@ Preferred communication style: Simple, everyday language.
 - **Audio Preloading**: Pre-cached audio files for auditory stimulus delivery
 
 ### Test Module Architecture
-- **Modular Design**: Separate implementations for SRT, CRT (2-choice/4-choice), Go/No-Go tests, and MIT testing
+- **Individual Module Design**: Separate implementations for SRT, CRT (2-choice/4-choice), Go/No-Go tests, and MIT testing
 - **MIT Integration**: Complete Movement Initiation Time testing and correction system with finger-tapping protocol
-- **Configurable Parameters**: Customizable trial counts, inter-stimulus intervals, and practice sessions
-- **Data Cleaning**: Automated outlier detection and removal with MIT-corrected analysis
+- **Configurable Parameters**: Customizable trial counts, inter-stimulus intervals, practice sessions, and outlier detection methods
+- **Advanced Data Cleaning**: Multiple outlier detection algorithms (MAD, IQR, Percentage Trim, Standard Deviation)
 - **Validation Suite**: Built-in reliability calculations (ICC, CV%) with MIT reliability metrics
 - **Cross-Modal Warnings**: Scientific disclaimers for comparing across different stimulus modalities
+- **Streamlined Focus**: Individual test modules only - no combined battery functionality
 
 ### Export and Analysis System
 - **Multiple Formats**: CSV, JSON, PDF summary reports, and SPSS-compatible data with MIT integration
+- **Professional PDF Reports**: Branded reports with headers, footers, structured sections, and comprehensive scientific methodology
 - **MIT-Corrected Exports**: All export formats include Movement Initiation Time corrections and raw data
-- **Comprehensive Metadata**: Device information, calibration data, MIT reliability metrics, and test configuration
+- **Comprehensive Metadata**: Device information, calibration data, MIT reliability metrics, outlier detection methods, and test configuration
 - **Statistical Analysis**: Automated calculation of MIT-corrected descriptive statistics and reliability metrics
 - **Visualization**: Recharts integration for MIT-corrected data visualization and trend analysis
-- **Scientific Compliance**: Cross-modal warnings and research disclaimers included in exports
+- **Scientific Compliance**: Cross-modal warnings, research disclaimers, and methodology documentation included in exports
+- **Outlier Method Documentation**: Complete tracking and reporting of outlier detection methods used in each session
 
 ### Progressive Web App Features
 - **Offline Capability**: Full functionality without internet connection through service worker caching

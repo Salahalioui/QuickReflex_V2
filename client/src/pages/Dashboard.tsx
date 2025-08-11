@@ -195,24 +195,7 @@ export default function Dashboard() {
               </div>
             ))}
 
-            {/* Battery Mode */}
-            <div className="bg-energy rounded-xl p-6 shadow-lg border-2 border-yellow-400/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                    <span className="material-icons text-xl text-yellow-600">battery_charging_full</span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-lg text-gray-800">Full Battery</h4>
-                    <p className="text-sm text-gray-700 font-medium">Complete Assessment Suite</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold text-gray-800">All Tests</div>
-                  <div className="text-xs text-gray-700 font-medium">~20 min</div>
-                </div>
-              </div>
-            </div>
+
           </div>
         </CardContent>
       </Card>

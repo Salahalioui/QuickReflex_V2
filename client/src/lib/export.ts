@@ -277,7 +277,7 @@ export function generatePDFSummary(data: ExportData): Blob {
     pdf.setFontSize(11);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(100, 100, 100);
-    pdf.text(`${session.stimulusType?.charAt(0).toUpperCase() + session.stimulusType?.slice(1)} Stimulus`, 20, yPosition + 8);
+    pdf.text(`${session.stimulusType ? session.stimulusType.charAt(0).toUpperCase() + session.stimulusType.slice(1) : 'Unknown'} Stimulus`, 20, yPosition + 8);
     
     // Date in top right
     pdf.text(`${session.startedAt ? new Date(session.startedAt).toLocaleDateString() : 'N/A'}`, pageWidth - 20, yPosition, { align: 'right' });

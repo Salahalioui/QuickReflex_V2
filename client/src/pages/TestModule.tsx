@@ -40,14 +40,7 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     isiMax: 3000,
     outlierMethod: 'mad',
   },
-  'battery': {
-    type: 'SRT',
-    totalTrials: 100,
-    practiceTrials: 15,
-    isiMin: 1500,
-    isiMax: 4000,
-    outlierMethod: 'mad',
-  },
+
 };
 
 export default function TestModule() {
@@ -130,14 +123,7 @@ export default function TestModule() {
       return;
     }
 
-    // Check for cross-modal warning only for battery tests that use multiple modalities
-    // Single tests don't need the warning since they use only one stimulus type
-    const needsCrossModalWarning = testType === 'battery' && !crossModalWarningAcknowledged;
-    
-    if (needsCrossModalWarning) {
-      setShowCrossModalWarning(true);
-      return;
-    }
+
 
     try {
       // Create enhanced configuration with calibration limitations
@@ -238,13 +224,7 @@ export default function TestModule() {
           icon: 'stop_circle',
           color: 'text-secondary',
         };
-      case 'battery':
-        return {
-          title: 'Full Test Battery',
-          description: 'Complete assessment with all test types',
-          icon: 'playlist_play',
-          color: 'text-primary',
-        };
+
       default:
         return {
           title: 'Reaction Time Test',

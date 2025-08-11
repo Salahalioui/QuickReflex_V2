@@ -20,7 +20,7 @@ export const profiles = pgTable("profiles", {
 export const testSessions = pgTable("test_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   profileId: varchar("profile_id").references(() => profiles.id).notNull(),
-  testType: text("test_type").notNull(), // 'SRT', 'CRT', 'GO_NO_GO', 'BATTERY', 'MIT'
+  testType: text("test_type").notNull(), // 'SRT', 'CRT', 'GO_NO_GO', 'MIT'
   stimulusType: text("stimulus_type"), // 'visual', 'auditory', 'tactile'
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
@@ -79,7 +79,7 @@ export type Trial = typeof trials.$inferSelect;
 export type InsertTrial = z.infer<typeof insertTrialSchema>;
 
 // Enum types for better type safety
-export const TestType = z.enum(['SRT', 'CRT_2', 'CRT_4', 'GO_NO_GO', 'BATTERY', 'MIT']);
+export const TestType = z.enum(['SRT', 'CRT_2', 'CRT_4', 'GO_NO_GO', 'MIT']);
 export const StimulusType = z.enum(['visual', 'auditory', 'tactile']);
 export const SessionStatus = z.enum(['in_progress', 'completed', 'aborted']);
 
