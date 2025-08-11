@@ -1,7 +1,6 @@
-import express from 'express';
-import { createServer } from 'http';
-import fs from 'fs';
-import path from 'path';
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 
@@ -48,4 +47,4 @@ if (fs.existsSync(publicPath)) {
 }
 
 // Export for Vercel
-export default app;
+module.exports = app;
