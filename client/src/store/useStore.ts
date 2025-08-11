@@ -53,6 +53,10 @@ interface AppStore extends NavigationState {
   // Results actions
   loadRecentResults: () => Promise<void>;
   exportData: (format: 'csv' | 'json' | 'pdf') => Promise<void>;
+  
+  // MIT actions
+  saveMITResult: (mitData: { meanMIT: number; sdMIT: number; reliability: number; validTaps: number }) => Promise<void>;
+  getMITResult: () => Promise<{ meanMIT: number; sdMIT: number; reliability: number; validTaps: number } | null>;
 }
 
 const defaultSettings: AppSettings = {
@@ -194,6 +198,10 @@ export const useStore = create<AppStore>()(
           stimulusType: config.stimulusType,
           metadata: { configuration: config },
           status: 'in_progress',
+          movementInitiationTime: null,
+          calibrationLimitations: null,
+          crossModalWarningShown: false,
+          completedAt: null,
         });
         
         set({
@@ -225,7 +233,8 @@ export const useStore = create<AppStore>()(
         if (testTrials.length > 0) {
           // Apply outlier cleaning using the cleanReactionTimes function
           const { cleanReactionTimes } = await import('@/lib/timing');
-          const cleaningResults = cleanReactionTimes(testTrials, {
+          const validTrials = testTrials.filter(trial => trial.rtRaw !== null);
+          const cleaningResults = cleanReactionTimes(validTrials as any[], {
             minRT: 100,
             maxRT: 1000,
             removeMinMax: true,
@@ -290,6 +299,58 @@ export const useStore = create<AppStore>()(
         
         // Export implementation would go here
         console.log(`Exporting data in ${format} format for profile:`, currentProfile.id);
+      },
+      
+      // MIT actions
+      saveMITResult: async (mitData) => {
+        const { currentProfile } = get();
+        if (!currentProfile) throw new Error('No profile selected');
+        
+        // Create a special MIT test session to store the results
+        await db.createTestSession({
+          profileId: currentProfile.id,
+          testType: 'MIT',
+          stimulusType: 'tactile',
+          metadata: { 
+            mitData,
+            sessionType: 'MIT_CALIBRATION'
+          },
+          status: 'completed',
+          movementInitiationTime: mitData.meanMIT,
+          calibrationLimitations: null,
+          crossModalWarningShown: false,
+          completedAt: new Date(),
+        });
+        
+        console.log('MIT result saved:', mitData);
+      },
+      
+      getMITResult: async () => {
+        const { currentProfile } = get();
+        if (!currentProfile) return null;
+        
+        // Find the most recent MIT session for this profile
+        const sessions = await db.getTestSessions();
+        const userSessions = sessions.filter(s => s.profileId === currentProfile.id);
+        const mitSessions = userSessions
+          .filter((s: any) => s.testType === 'MIT' && s.movementInitiationTime)
+          .sort((a: any, b: any) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
+        
+        if (mitSessions.length === 0) return null;
+        
+        const latestMitSession = mitSessions[0];
+        const mitData = latestMitSession.metadata?.mitData;
+        
+        if (mitData && latestMitSession.movementInitiationTime) {
+          return {
+            meanMIT: latestMitSession.movementInitiationTime,
+            sdMIT: mitData.sdMIT || 0,
+            reliability: mitData.reliability || 0,
+            validTaps: mitData.validTaps || 0,
+          };
+        }
+        
+        return null;
       },
     }),
     {

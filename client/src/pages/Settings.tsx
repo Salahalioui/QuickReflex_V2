@@ -15,7 +15,8 @@ export default function Settings() {
     settings, 
     updateSettings,
     createProfile,
-    updateProfile 
+    updateProfile,
+    getMITResult 
   } = useStore();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -27,6 +28,7 @@ export default function Settings() {
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [mitData, setMitData] = useState<{ meanMIT: number; sdMIT: number; reliability: number; validTaps: number } | null>(null);
 
   useEffect(() => {
     if (currentProfile) {
@@ -43,6 +45,24 @@ export default function Settings() {
       });
     }
   }, [currentProfile]);
+
+  // Load MIT data for calibration display
+  useEffect(() => {
+    const loadMITData = async () => {
+      if (currentProfile) {
+        try {
+          const result = await getMITResult();
+          if (result) {
+            setMitData(result);
+          }
+        } catch (error) {
+          console.error('Failed to load MIT data:', error);
+        }
+      }
+    };
+    
+    loadMITData();
+  }, [currentProfile, getMITResult]);
 
   const handleSaveProfile = async () => {
     if (!profileForm.name.trim()) {
@@ -68,8 +88,8 @@ export default function Settings() {
       } else {
         await createProfile({
           name: profileForm.name,
-          age: profileForm.age ? parseInt(profileForm.age) : undefined,
-          sport: profileForm.sport || undefined,
+          age: profileForm.age ? parseInt(profileForm.age) : null,
+          sport: profileForm.sport || null,
           refreshRateHz: 60,
           touchSamplingHz: 120,
           deviceLatencyOffsetMs: 12.5,
@@ -220,6 +240,7 @@ export default function Settings() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Device Calibration Status */}
             {currentProfile?.calibrationTimestamp ? (
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -234,20 +255,68 @@ export default function Settings() {
                     {new Date(currentProfile.calibrationTimestamp).toLocaleDateString()}
                   </span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Refresh Rate:</span>
+                  <span>{currentProfile.refreshRateHz}Hz</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Touch Sampling:</span>
+                  <span>{currentProfile.touchSamplingHz}Hz</span>
+                </div>
               </div>
             ) : (
               <div className="text-center py-4">
                 <span className="text-warning">Device not calibrated</span>
               </div>
             )}
+
+            {/* MIT Calibration Data */}
+            {mitData && (
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                  Movement Time Calibration
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex justify-between">
+                    <span>Mean MIT:</span>
+                    <span className="font-medium">{Math.round(mitData.meanMIT)}ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Reliability:</span>
+                    <span className="font-medium">{Math.round(mitData.reliability * 100)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Std Dev:</span>
+                    <span className="font-medium">{Math.round(mitData.sdMIT)}ms</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Valid Taps:</span>
+                    <span className="font-medium">{mitData.validTaps}</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-blue-700 dark:text-blue-300">
+                  Used for MIT-corrected analysis in test results
+                </div>
+              </div>
+            )}
             
-            <Button
-              variant="outline"
-              onClick={() => setLocation('/calibration')}
-              data-testid="button-recalibrate"
-            >
-              {currentProfile?.calibrationTimestamp ? 'Recalibrate' : 'Calibrate Device'}
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setLocation('/calibration')}
+                data-testid="button-recalibrate"
+              >
+                {currentProfile?.calibrationTimestamp ? 'Recalibrate' : 'Calibrate Device'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setLocation('/tests/mit')}
+                data-testid="button-mit-test"
+              >
+                {mitData ? 'Redo MIT' : 'MIT Test'}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

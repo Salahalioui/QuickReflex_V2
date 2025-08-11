@@ -15,7 +15,8 @@ export default function Results() {
   const { 
     currentProfile, 
     recentResults, 
-    loadRecentResults 
+    loadRecentResults,
+    getMITResult
   } = useStore();
   const { toast } = useToast();
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
@@ -34,20 +35,23 @@ export default function Results() {
     }
   }, [recentResults, selectedResult]);
 
-  // Check for MIT data when profile loads
+  // Load actual MIT data from the store
   useEffect(() => {
-    // For now, this would need to be enhanced to store MIT data on the profile
-    // This is a placeholder showing how MIT integration would work
-    const mockMitTime = 150; // Mock MIT value
-    if (mockMitTime) {
-      setMitData({
-        meanMIT: mockMitTime,
-        reliability: 0.85, // Example reliability score
-        validTaps: 20, // Example tap count
-        sdMIT: mockMitTime * 0.15, // Estimated SD
-      });
-    }
-  }, [currentProfile]);
+    const loadMITData = async () => {
+      if (currentProfile) {
+        try {
+          const mitResult = await getMITResult();
+          if (mitResult) {
+            setMitData(mitResult);
+          }
+        } catch (error) {
+          console.error('Failed to load MIT data:', error);
+        }
+      }
+    };
+    
+    loadMITData();
+  }, [currentProfile, getMITResult]);
 
   // Check if cross-modal warning should be shown
   const shouldShowCrossModalWarning = (stimulusTypes: StimulusTypeEnum[]) => {

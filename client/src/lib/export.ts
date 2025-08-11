@@ -9,9 +9,11 @@ export function exportToCSV(data: ExportData): string {
     'Profile_ID', 'Profile_Name', 'Age', 'Sport',
     'Session_ID', 'Test_Type', 'Stimulus_Type', 'Session_Date',
     'Trial_ID', 'Trial_Number', 'Is_Practice', 'Stimulus_Detail',
-    'RT_Raw_ms', 'RT_Corrected_ms', 'Excluded', 'Exclusion_Reason',
-    'Accuracy', 'Refresh_Rate_Hz', 'Touch_Sampling_Hz', 'Device_Latency_Offset_ms',
-    'Device_Info', 'Calibration_Timestamp'
+    'RT_Raw_ms', 'RT_Corrected_ms', 'Stimulus_Detection_Time_ms', 'MIT_ms',
+    'Excluded', 'Exclusion_Reason', 'Accuracy', 
+    'Refresh_Rate_Hz', 'Touch_Sampling_Hz', 'Device_Latency_Offset_ms',
+    'Device_Info', 'Calibration_Timestamp', 'Cross_Modal_Warning_Shown',
+    'Calibration_Limitations'
   ];
   
   let csv = headers.join(',') + '\n';
@@ -38,6 +40,8 @@ export function exportToCSV(data: ExportData): string {
         `"${trial.stimulusDetail || ''}"`,
         trial.rtRaw?.toString() || '',
         trial.rtCorrected?.toString() || '',
+        trial.stimulusDetectionTime?.toString() || '', // MIT-corrected cognitive processing time
+        session.movementInitiationTime?.toString() || '', // MIT from session
         trial.excludedFlag ? '1' : '0',
         `"${trial.exclusionReason || ''}"`,
         trial.accuracy !== null ? (trial.accuracy ? '1' : '0') : '',
@@ -46,6 +50,8 @@ export function exportToCSV(data: ExportData): string {
         data.profile.deviceLatencyOffsetMs.toString(),
         `"${data.profile.deviceInfoString || ''}"`,
         data.profile.calibrationTimestamp?.toISOString() || '',
+        session.crossModalWarningShown ? '1' : '0',
+        `"${session.calibrationLimitations || ''}"`,
       ];
       
       rows.push(row);

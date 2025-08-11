@@ -5,6 +5,8 @@ import { Progress } from "@/components/ui/progress";
 import { AlertTriangle, Play, RotateCcw, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { useStore } from '@/store/useStore';
+import { toast } from '@/hooks/use-toast';
 
 interface TapData {
   timestamp: number;
@@ -22,6 +24,7 @@ interface MITTestProps {
 }
 
 export default function MITTest({ onComplete, onCancel }: MITTestProps) {
+  const { saveMITResult } = useStore();
   const [phase, setPhase] = useState<'instructions' | 'countdown' | 'testing' | 'results'>('instructions');
   const [countdown, setCountdown] = useState(3);
   const [tapData, setTapData] = useState<TapData[]>([]);
@@ -139,7 +142,7 @@ export default function MITTest({ onComplete, onCancel }: MITTestProps) {
   };
 
   // Finish the test and calculate results
-  const finishTest = () => {
+  const finishTest = async () => {
     if (intervalRef.current) clearTimeout(intervalRef.current);
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
     
@@ -150,6 +153,35 @@ export default function MITTest({ onComplete, onCancel }: MITTestProps) {
     
     // Only complete if we have valid results
     if (results.averageMIT > 0 && tapData.length >= 3) {
+      try {
+        // Save MIT results to store for future use in calculations
+        await saveMITResult({
+          meanMIT: results.averageMIT,
+          sdMIT: results.standardDeviation,
+          reliability: results.reliability,
+          validTaps: tapData.length
+        });
+
+        toast({
+          title: "MIT Test Complete",
+          description: `Movement time: ${Math.round(results.averageMIT)}ms (reliability: ${Math.round(results.reliability * 100)}%)`,
+        });
+
+        console.log('MIT completed:', {
+          averageMIT: results.averageMIT,
+          tapData: tapData
+        });
+        
+      } catch (error) {
+        console.error('Failed to save MIT results:', error);
+        toast({
+          title: "Save Failed",
+          description: "MIT results could not be saved. Please try again.",
+          variant: "destructive"
+        });
+      }
+      
+      // Call the completion handler for the parent component
       onComplete({
         averageMIT: results.averageMIT,
         tapData: tapData,
