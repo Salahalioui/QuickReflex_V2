@@ -31,6 +31,7 @@ export interface TestResult {
   outliers: number;
   accuracy?: number; // For Go/No-Go tests
   completedAt: Date;
+  outlierMethod?: 'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr';
 }
 
 export interface NavigationState {

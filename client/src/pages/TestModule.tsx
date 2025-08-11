@@ -424,6 +424,15 @@ export default function TestModule() {
                       ((configuration.isiMin + configuration.isiMax) / 2 + 500) / 60000)}min
                   </span>
                 </div>
+                <div>
+                  <span className="text-gray-600">Outlier Detection:</span>
+                  <span className="ml-2 font-medium" data-testid="text-outlier-method">
+                    {configuration.outlierMethod === 'mad' && 'MAD (Robust)'}
+                    {configuration.outlierMethod === 'percentage_trim' && 'Percentage Trim (2.5%)'}
+                    {configuration.outlierMethod === 'iqr' && 'IQR Method'}
+                    {configuration.outlierMethod === 'standard_deviation' && 'Standard Deviation'}
+                  </span>
+                </div>
               </div>
             </div>
           )}

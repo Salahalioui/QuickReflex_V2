@@ -275,7 +275,9 @@ export default function Results() {
                       {result.type} - {result.stimulusType}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {result.completedAt.toLocaleDateString()}
+                      {result.completedAt.toLocaleDateString()} • {result.outlierMethod === 'mad' ? 'MAD' : 
+                       result.outlierMethod === 'percentage_trim' ? 'Trim 2.5%' :
+                       result.outlierMethod === 'iqr' ? 'IQR' : 'SD Method'}
                     </div>
                   </div>
                   <div className="text-right">
@@ -365,6 +367,26 @@ export default function Results() {
                   </div>
                 </div>
               )}
+
+              {/* Outlier Detection Method Info */}
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+                <div className="flex items-center mb-3">
+                  <Info className="h-4 w-4 mr-2 text-gray-600" />
+                  <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    Data Processing Method
+                  </h4>
+                </div>
+                <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+                  <p><strong>Outlier Detection:</strong> {
+                    selectedResult.outlierMethod === 'mad' ? 'Median Absolute Deviation (MAD) - Robust method resistant to extreme outliers' :
+                    selectedResult.outlierMethod === 'percentage_trim' ? 'Percentage Trimming (2.5%) - Simple removal of fastest/slowest trials' :
+                    selectedResult.outlierMethod === 'iqr' ? 'Interquartile Range (IQR) - Statistical method using quartile boundaries' :
+                    'Standard Deviation (±2.5σ) - Classic method sensitive to extreme outliers'
+                  }</p>
+                  <p><strong>Excluded Trials:</strong> {selectedResult.outliers} outliers + anticipatory/delayed responses</p>
+                  <p><strong>Valid Data:</strong> {selectedResult.validTrials} trials used for statistical analysis</p>
+                </div>
+              </div>
               
               {selectedResult.accuracy !== undefined && (
                 <div className="mt-4 text-center">

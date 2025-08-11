@@ -266,6 +266,9 @@ class IndexedDBStorage {
                   ? trials.filter(t => t.accuracy).length / trials.length * 100
                   : undefined;
                 
+                // Extract outlier method from session metadata
+                const outlierMethod = session.metadata?.configuration?.outlierMethod || 'standard_deviation';
+                
                 results.push({
                   sessionId: session.id,
                   type: session.testType as any,
@@ -277,6 +280,7 @@ class IndexedDBStorage {
                   outliers: trialsRequest.result.filter(t => t.excludedFlag).length,
                   accuracy,
                   completedAt: session.completedAt || session.startedAt,
+                  outlierMethod: outlierMethod as any,
                 });
               }
               trialResolve(undefined);
