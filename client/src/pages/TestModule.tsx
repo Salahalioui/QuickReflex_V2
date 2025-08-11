@@ -32,13 +32,6 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     isiMin: 1500,
     isiMax: 3000,
   },
-  'movement': {
-    type: 'MOVEMENT_TIME',
-    totalTrials: 20,
-    practiceTrials: 5,
-    isiMin: 1000,
-    isiMax: 2000,
-  },
   'battery': {
     type: 'SRT',
     totalTrials: 100,
@@ -80,21 +73,15 @@ export default function TestModule() {
 
     // Build configuration based on test type and selections
     let finalType: TestTypeEnum = baseConfig.type!;
-    let finalStimulus: StimulusTypeEnum = selectedStimulus;
     
     if (testType === 'crt') {
       finalType = selectedVariant === '2' ? 'CRT_2' : 'CRT_4';
-    }
-    
-    // Movement time test only uses visual stimuli for consistent methodology
-    if (testType === 'movement') {
-      finalStimulus = 'visual';
     }
 
     setConfiguration({
       ...baseConfig,
       type: finalType,
-      stimulusType: finalStimulus,
+      stimulusType: selectedStimulus,
     } as TestConfiguration);
   }, [testType, selectedStimulus, selectedVariant, baseConfig, setLocation, toast]);
 
@@ -208,13 +195,6 @@ export default function TestModule() {
           icon: 'stop_circle',
           color: 'text-secondary',
         };
-      case 'movement':
-        return {
-          title: 'Movement Time Estimation',
-          description: 'Estimate pure motor response time for RT correction',
-          icon: 'gesture',
-          color: 'text-blue-600',
-        };
       case 'battery':
         return {
           title: 'Full Test Battery',
@@ -277,40 +257,6 @@ export default function TestModule() {
         </Alert>
       )}
 
-      {/* Cross-Modal Warning for SRT */}
-      {testType === 'srt' && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div>
-              <strong>Important Scientific Note</strong>
-              <p className="text-sm mt-1">
-                Different stimulus types (visual, auditory, tactile) have inherently different neural processing times. 
-                Visual stimuli reach the brain in 20-40ms, while auditory stimuli take only 8-10ms. 
-                <strong className="block mt-1">Do not compare reaction times between different stimulus modalities.</strong>
-              </p>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Movement Time Test Information */}
-      {testType === 'movement' && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div>
-              <strong>Movement Time Estimation Protocol</strong>
-              <p className="text-sm mt-1">
-                This test measures motor response time without cognitive processing delay. 
-                The stimulus appears immediately on screen tap. Use visual stimuli only for consistent methodology.
-                <strong className="block mt-1">Movement time data helps separate cognitive processing from motor execution in reaction time analysis.</strong>
-              </p>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       {/* Test Configuration */}
       <Card>
         <CardHeader>
@@ -318,31 +264,29 @@ export default function TestModule() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Stimulus Type Selection */}
-          {testType !== 'movement' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Stimulus Type
-              </label>
-              <Select 
-                value={selectedStimulus} 
-                onValueChange={(value: StimulusTypeEnum) => setSelectedStimulus(value)}
-              >
-                <SelectTrigger data-testid="select-stimulus-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="visual">Visual (20-40ms neural delay)</SelectItem>
-                  <SelectItem value="auditory">Auditory (8-10ms neural delay)</SelectItem>
-                  <SelectItem value="tactile">Tactile (Variable latency)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-1">
-                {selectedStimulus === 'visual' && 'React to colored visual cues (Subject to display refresh rate)'}
-                {selectedStimulus === 'auditory' && 'React to audio beeps (Subject to audio buffer delay)'}
-                {selectedStimulus === 'tactile' && 'React to device vibration (Subject to haptic latency)'}
-              </p>
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Stimulus Type
+            </label>
+            <Select 
+              value={selectedStimulus} 
+              onValueChange={(value: StimulusTypeEnum) => setSelectedStimulus(value)}
+            >
+              <SelectTrigger data-testid="select-stimulus-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="visual">Visual</SelectItem>
+                <SelectItem value="auditory">Auditory</SelectItem>
+                <SelectItem value="tactile">Tactile (Vibration)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedStimulus === 'visual' && 'React to colored visual cues'}
+              {selectedStimulus === 'auditory' && 'React to audio beeps (requires sound)'}
+              {selectedStimulus === 'tactile' && 'React to device vibration'}
+            </p>
+          </div>
 
           {/* CRT Variant Selection */}
           {testType === 'crt' && (
@@ -439,15 +383,6 @@ export default function TestModule() {
                 <p>• Green "GO" stimulus = Tap the screen quickly</p>
                 <p>• Red "STOP" stimulus = DO NOT tap (inhibit response)</p>
                 <p>• Focus on accuracy - avoiding false alarms is important</p>
-              </div>
-            )}
-
-            {testType === 'movement' && (
-              <div>
-                <p>• Tap the screen to make a stimulus appear immediately</p>
-                <p>• Then tap the stimulus as quickly as possible</p>
-                <p>• This measures pure motor response time (no cognitive delay)</p>
-                <p>• Used to estimate movement time for reaction time corrections</p>
               </div>
             )}
 

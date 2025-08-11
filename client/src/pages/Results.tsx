@@ -2,8 +2,7 @@ import { useStore } from '@/store/useStore';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, AlertTriangle } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { TestResult } from '@/types';
 import { exportToCSV, exportToJSON, generatePDFSummary, downloadFile, generateSPSSSyntax } from '@/lib/export';
@@ -123,19 +122,6 @@ export default function Results() {
     );
   }
 
-  // Check for cross-modal data mixing
-  const stimulusModalities = new Set(recentResults.map(r => r.stimulusType));
-  const hasCrossModalData = stimulusModalities.size > 1;
-
-  // Group results by modality for separate analysis
-  const resultsByModality = recentResults.reduce((acc, result) => {
-    if (!acc[result.stimulusType]) {
-      acc[result.stimulusType] = [];
-    }
-    acc[result.stimulusType].push(result);
-    return acc;
-  }, {} as Record<string, TestResult[]>);
-
   // Prepare chart data
   const chartData = selectedResult?.trials
     .filter(trial => !trial.isPractice && !trial.excludedFlag)
@@ -158,30 +144,6 @@ export default function Results() {
           Export
         </Button>
       </div>
-
-      {/* Cross-Modal Analysis Warning */}
-      {hasCrossModalData && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div>
-              <strong>Cross-Modal Analysis Warning</strong>
-              <p className="text-sm mt-1">
-                Your results contain data from multiple stimulus types ({Array.from(stimulusModalities).join(', ')}). 
-                <strong> These should be analyzed separately</strong> due to inherent neural processing differences:
-              </p>
-              <ul className="text-sm mt-2 list-disc list-inside space-y-1">
-                <li>Visual stimuli: 20-40ms neural processing delay</li>
-                <li>Auditory stimuli: 8-10ms neural processing delay</li>
-                <li>Tactile stimuli: Variable latency depending on device</li>
-              </ul>
-              <p className="text-sm mt-2 font-medium">
-                Use the filter below to analyze each modality independently for accurate interpretation.
-              </p>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Session Selector */}
       <Card>

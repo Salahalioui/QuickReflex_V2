@@ -2,15 +2,9 @@
 
 ## Overview
 
-QuickReflex is a research-grade Progressive Web App (PWA) designed for measuring and training reaction time in athletes, coaches, and researchers. The application implements multiple reaction time testing modules including Simple Reaction Time (SRT), Choice Reaction Time (CRT), Go/No-Go tests, and Movement Time estimation across visual, auditory, and tactile stimulus types.
+QuickReflex is a research-grade Progressive Web App (PWA) designed for measuring and training reaction time in athletes, coaches, and researchers. The application implements multiple reaction time testing modules including Simple Reaction Time (SRT), Choice Reaction Time (CRT), and Go/No-Go tests across visual, auditory, and tactile stimulus types.
 
 The system is built as a full-stack TypeScript application with a React frontend and Express backend, utilizing PostgreSQL for data persistence and IndexedDB for offline functionality. The architecture emphasizes precision timing, mobile-first design, and research-grade data collection with comprehensive export capabilities.
-
-**Recent Scientific Enhancements (August 2025):**
-- Implemented cross-modal analysis separation with scientific warnings against comparing different stimulus modalities
-- Added Movement Time estimation task to separate cognitive processing from motor response initiation
-- Enhanced calibration documentation with clear scope and limitations
-- Updated all test interfaces with neural processing delay information for research validity
 
 ## User Preferences
 
@@ -47,13 +41,10 @@ Preferred communication style: Simple, everyday language.
 - **Audio Preloading**: Pre-cached audio files for auditory stimulus delivery
 
 ### Test Module Architecture
-- **Modular Design**: Separate implementations for SRT, CRT (2-choice/4-choice), Go/No-Go tests, and Movement Time estimation
-- **Cross-Modal Analysis**: Scientifically-sound separation of visual, auditory, and tactile stimulus analysis
-- **Movement Time Protocol**: Dedicated test for estimating pure motor response time without cognitive delay
+- **Modular Design**: Separate implementations for SRT, CRT (2-choice/4-choice), and Go/No-Go tests
 - **Configurable Parameters**: Customizable trial counts, inter-stimulus intervals, and practice sessions
 - **Data Cleaning**: Automated outlier detection and removal with configurable thresholds
 - **Validation Suite**: Built-in reliability calculations (ICC, CV%) and statistical analysis
-- **Research Compliance**: Neural processing delay documentation and cross-modal comparison warnings
 
 ### Export and Analysis System
 - **Multiple Formats**: CSV, JSON, PDF summary reports, and SPSS-compatible data
@@ -66,14 +57,6 @@ Preferred communication style: Simple, everyday language.
 - **App-like Experience**: Native app behavior with installation prompts and standalone display
 - **Mobile Optimization**: Touch-friendly interface with responsive design patterns
 - **Cross-Platform**: Consistent experience across desktop, tablet, and mobile devices
-- **Scientific UI**: Research-grade interface with neural delay information and cross-modal warnings
-
-### Research and Scientific Validity
-- **Cross-Modal Separation**: Prevents scientifically invalid comparisons between stimulus modalities
-- **Neural Processing Documentation**: Clear labeling of inherent processing delays (visual: 20-40ms, auditory: 8-10ms)
-- **Movement Time Estimation**: Dedicated protocol for separating cognitive and motor components
-- **Calibration Scope Clarity**: Explicit documentation of what device calibration can and cannot address
-- **Research Compliance**: Interface warnings and analysis separation for academic and clinical use
 
 ## External Dependencies
 

@@ -20,7 +20,7 @@ export const profiles = pgTable("profiles", {
 export const testSessions = pgTable("test_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   profileId: varchar("profile_id").references(() => profiles.id).notNull(),
-  testType: text("test_type").notNull(), // 'SRT', 'CRT_2', 'CRT_4', 'GO_NO_GO', 'MOVEMENT_TIME'
+  testType: text("test_type").notNull(), // 'SRT', 'CRT', 'GO_NO_GO', 'BATTERY'
   stimulusType: text("stimulus_type"), // 'visual', 'auditory', 'tactile'
   startedAt: timestamp("started_at").defaultNow(),
   completedAt: timestamp("completed_at"),
@@ -65,11 +65,6 @@ export const insertTrialSchema = createInsertSchema(trials).omit({
   createdAt: true,
 });
 
-// Enum schemas
-export const TestType = z.enum(['SRT', 'CRT_2', 'CRT_4', 'GO_NO_GO', 'MOVEMENT_TIME']);
-export const StimulusType = z.enum(['visual', 'auditory', 'tactile']);
-export const SessionStatus = z.enum(['in_progress', 'completed', 'aborted']);
-
 // Types
 export type Profile = typeof profiles.$inferSelect;
 export type InsertProfile = z.infer<typeof insertProfileSchema>;
@@ -77,6 +72,12 @@ export type TestSession = typeof testSessions.$inferSelect;
 export type InsertTestSession = z.infer<typeof insertTestSessionSchema>;
 export type Trial = typeof trials.$inferSelect;
 export type InsertTrial = z.infer<typeof insertTrialSchema>;
+
+// Enum types for better type safety
+export const TestType = z.enum(['SRT', 'CRT_2', 'CRT_4', 'GO_NO_GO', 'BATTERY']);
+export const StimulusType = z.enum(['visual', 'auditory', 'tactile']);
+export const SessionStatus = z.enum(['in_progress', 'completed', 'aborted']);
+
 export type TestTypeEnum = z.infer<typeof TestType>;
 export type StimulusTypeEnum = z.infer<typeof StimulusType>;
 export type SessionStatusEnum = z.infer<typeof SessionStatus>;

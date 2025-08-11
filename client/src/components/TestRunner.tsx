@@ -129,8 +129,6 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
           const currentIndex = testState.currentTrial % 40;
           return goNoGoSequence[currentIndex];
         }
-      case 'MOVEMENT_TIME':
-        return 'tap'; // Simple tap response for movement time estimation
       default:
         return 'stimulus';
     }
@@ -217,21 +215,6 @@ export default function TestRunner({ configuration, onComplete }: TestRunnerProp
           cueElement.style.backgroundColor = '#FF3333'; // Pure red
           cueElement.textContent = 'STOP';
         }
-        break;
-        
-      case 'MOVEMENT_TIME':
-        // Simple target for movement time measurement
-        cueElement.style.backgroundColor = '#4F46E5'; // Indigo
-        cueElement.style.borderRadius = '50%';
-        cueElement.style.width = '80px';
-        cueElement.style.height = '80px';
-        cueElement.style.display = 'flex';
-        cueElement.style.alignItems = 'center';
-        cueElement.style.justifyContent = 'center';
-        cueElement.style.fontSize = '16px';
-        cueElement.style.fontWeight = 'bold';
-        cueElement.style.color = 'white';
-        cueElement.textContent = 'TAP';
         break;
     }
 
