@@ -1,0 +1,47 @@
+[00:45:52.656] Running build in Washington, D.C., USA (East) – iad1
+[00:45:52.657] Build machine configuration: 2 cores, 8 GB
+[00:45:52.678] Cloning github.com/Salahalioui/QuickReflex_V2 (Branch: main, Commit: 7c4afad)
+[00:45:52.995] Cloning completed: 317.000ms
+[00:45:53.040] Found .vercelignore
+[00:45:53.064] Removed 133 ignored files defined in .vercelignore
+[00:45:53.065]   /.git/config
+[00:45:53.065]   /.git/description
+[00:45:53.065]   /.git/FETCH_HEAD
+[00:45:53.065]   /.git/HEAD
+[00:45:53.065]   /.git/hooks/applypatch-msg.sample
+[00:45:53.065]   /.git/hooks/commit-msg.sample
+[00:45:53.065]   /.git/hooks/fsmonitor-watchman.sample
+[00:45:53.065]   /.git/hooks/post-update.sample
+[00:45:53.065]   /.git/hooks/pre-applypatch.sample
+[00:45:53.065]   /.git/hooks/pre-commit.sample
+[00:45:54.012] Restored build cache from previous deployment (Hp2ue3xfYRuYcyYJBtBuFxU4RWTh)
+[00:45:58.870] Running "vercel build"
+[00:45:59.442] Vercel CLI 44.7.3
+[00:46:00.185] Installing dependencies...
+[00:46:01.833] 
+[00:46:01.834] up to date in 1s
+[00:46:01.834] 
+[00:46:01.834] 66 packages are looking for funding
+[00:46:01.834]   run `npm fund` for details
+[00:46:01.979] 
+[00:46:01.979] > rest-express@1.0.0 build
+[00:46:01.979] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[00:46:01.979] 
+[00:46:02.319] [36mvite v5.4.19 [32mbuilding for production...[36m[39m
+[00:46:02.378] transforming...
+[00:46:02.392] [32m✓[39m 2 modules transformed.
+[00:46:02.398] [31mx[39m Build failed in 51ms
+[00:46:02.398] [31merror during build:
+[00:46:02.399] [31m[vite]: Rollup failed to resolve import "/src/main.tsx" from "/vercel/path0/client/index.html".
+[00:46:02.399] This is most likely unintended because it can break your application at runtime.
+[00:46:02.399] If you do want to externalize this module explicitly add it to
+[00:46:02.399] `build.rollupOptions.external`[31m
+[00:46:02.399]     at viteWarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65839:17)
+[00:46:02.399]     at onwarn (file:///vercel/path0/node_modules/@vitejs/plugin-react/dist/index.mjs:280:9)
+[00:46:02.399]     at onRollupWarning (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65869:5)
+[00:46:02.400]     at onwarn (file:///vercel/path0/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:65534:7)
+[00:46:02.400]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:19452:13
+[00:46:02.400]     at Object.logger [as onLog] (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21178:9)
+[00:46:02.400]     at ModuleLoader.handleInvalidResolvedId (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20067:26)
+[00:46:02.400]     at file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:20025:26[39m
+[00:46:02.414] Error: Command "npm run build" exited with 1
