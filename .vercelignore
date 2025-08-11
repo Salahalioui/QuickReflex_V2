@@ -1,0 +1,12 @@
+node_modules
+.env
+.env.local
+.env.*.local
+.replit
+.git
+*.log
+client/src
+server
+shared
+docs
+attached_assets
