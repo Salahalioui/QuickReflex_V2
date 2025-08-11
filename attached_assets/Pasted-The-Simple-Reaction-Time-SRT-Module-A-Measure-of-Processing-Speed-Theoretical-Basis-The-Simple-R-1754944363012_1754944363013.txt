@@ -1,0 +1,19 @@
+The Simple Reaction Time (SRT) Module: A Measure of Processing Speed
+Theoretical Basis: The Simple Reaction Time (SRT) task is one of the oldest and most fundamental measures in experimental psychology. It quantifies the time elapsed between the onset of a single, expected stimulus and the execution of a single, predetermined motor response. As such, it is considered a relatively pure measure of basic information processing speed, encompassing stimulus detection, decision to respond, and motor response initiation. Decades of research have linked SRT to higher-order cognitive functions, most notably fluid intelligence.   
+
+Implementation Analysis: The QuickReflex_V2 project implements SRT tasks using visual, auditory, and tactile stimuli. This multi-modal approach is ambitious and potentially powerful, as it allows for the investigation of processing speed across different sensory channels.   
+
+Critique and Recommendations: While the implementation is conceptually sound, its claim to research-grade status faces two significant hurdles.
+
+First, the historical latency problem casts a long shadow over all modern, computer-based SRT measurements. Studies from the late 19th century using mechanical apparatus consistently reported mean SRTs in the range of 180-190 ms. In contrast, contemporary studies using computer-based paradigms report much longer mean SRTs, often ranging from 230 ms to nearly 400 ms. This discrepancy is not attributed to a decline in human fluid intelligence, but rather to the unmeasured and often substantial hardware and software delays inherent in modern computer systems. This systemic latency means that any SRT value collected by a web application is an overestimation of the true cognitive processing time.   
+
+Second, the use of multiple sensory modalities introduces a critical issue of cross-modal latency. The neural pathways and physical transduction times for different senses are not equal. An auditory stimulus reaches the brain significantly faster (8-10 ms) than a visual stimulus (20-40 ms). Furthermore, the system-level latencies are different: a visual stimulus is subject to display refresh rates and pixel response times, while an auditory stimulus is subject to audio buffer delays and speaker activation times. A tactile stimulus, such as a phone's vibration motor, has its own unique mechanical startup latency. The project's documentation mentions "device calibration" but provides no detail on how it addresses these fundamentally different and non-equivalent latency chains.   
+
+Recommendations:
+
+Separate and Document Modalities: The project should explicitly caution users against directly comparing absolute RTs gathered from different stimulus modalities (visual vs. auditory vs. tactile). The data and analysis for each should be treated separately.
+
+Reframe "Calibration": The documentation should clarify what "calibration" entails for each modality. If a true cross-modal calibration is not performed (which is likely, as it requires external hardware), this claim should be revised to reflect a more modest and accurate description of the procedure.
+
+Estimate Movement Time: To provide a more refined measure, consider adding a separate, simple speeded finger-tapping task. The mean time from this task can serve as an estimate of a participant's Movement Initiation Time (MIT). By subtracting this MIT from the total SRT, one can derive an estimate of the Stimulus Detection Time (SDT), which is a purer measure of perceptual and central processing, shown to be less affected by age than total SRT.   
+
