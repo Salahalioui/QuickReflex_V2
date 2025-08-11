@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, Music2 } from 'lucide-react';
+import { Info, Music2, AlertTriangle } from 'lucide-react';
 import { DeviceProfiler } from '@/lib/validation';
 import { useToast } from '@/hooks/use-toast';
 
