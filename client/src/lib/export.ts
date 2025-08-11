@@ -82,46 +82,164 @@ export function exportToJSON(data: ExportData): string {
  */
 export function generatePDFSummary(data: ExportData): Blob {
   const pdf = new jsPDF();
-  let yPosition = 20;
+  let yPosition = 0;
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
   
-  // Title
-  pdf.setFontSize(20);
-  pdf.text('QuickReflex - Test Results Summary', 20, yPosition);
+  // Add header function
+  const addHeader = () => {
+    // Header background
+    pdf.setFillColor(26, 54, 93); // Dark blue
+    pdf.rect(0, 0, pageWidth, 25, 'F');
+    
+    // Logo/App name
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('QuickReflex', 15, 16);
+    
+    // Report type
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text('REACTION TIME ANALYSIS REPORT', pageWidth - 15, 12, { align: 'right' });
+    
+    // Date
+    pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - 15, 20, { align: 'right' });
+    
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+  };
+  
+  // Add footer function
+  const addFooter = (pageNum: number) => {
+    // Footer line
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
+    
+    // Footer text
+    pdf.setFontSize(8);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('QuickReflex - Research-Grade Reaction Time Testing Platform', 15, pageHeight - 12);
+    pdf.text(`Page ${pageNum}`, pageWidth - 15, pageHeight - 12, { align: 'right' });
+    pdf.text('www.quickreflex.app', pageWidth / 2, pageHeight - 12, { align: 'center' });
+    
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+  };
+  
+  // First page header
+  addHeader();
+  yPosition = 35;
+  
+  // Main title
+  pdf.setFontSize(24);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Test Results Summary', 15, yPosition);
+  yPosition += 15;
+  
+  // Subtitle with participant info
+  pdf.setFontSize(14);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(100, 100, 100);
+  pdf.text(`Participant: ${data.profile.name} | ${data.sessions.length} Test Session${data.sessions.length > 1 ? 's' : ''}`, 15, yPosition);
+  yPosition += 25;
+  
+  // Profile Information Section
+  pdf.setFillColor(245, 245, 245);
+  pdf.rect(15, yPosition - 5, pageWidth - 30, 35, 'F');
+  
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Participant Profile', 20, yPosition + 5);
+  
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(0, 0, 0);
+  
+  // Two column layout for profile info
+  const leftCol = 25;
+  const rightCol = pageWidth / 2 + 10;
+  
+  pdf.text(`Name:`, leftCol, yPosition + 15);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.name}`, leftCol + 25, yPosition + 15);
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.text(`Age:`, rightCol, yPosition + 15);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.age || 'Not specified'}`, rightCol + 20, yPosition + 15);
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.text(`Sport/Activity:`, leftCol, yPosition + 25);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.sport || 'Not specified'}`, leftCol + 40, yPosition + 25);
+  pdf.setFont('helvetica', 'normal');
+  
+  yPosition += 45;
+  
+  // Device Calibration Section
+  pdf.setFillColor(250, 250, 255);
+  pdf.rect(15, yPosition - 5, pageWidth - 30, 40, 'F');
+  
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Device Calibration & Technical Setup', 20, yPosition + 5);
+  
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(0, 0, 0);
+  
+  // Calibration info in organized layout
+  pdf.text(`Display Refresh Rate:`, leftCol, yPosition + 15);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.refreshRateHz} Hz`, leftCol + 60, yPosition + 15);
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.text(`Touch Sampling Rate:`, rightCol, yPosition + 15);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.touchSamplingHz} Hz`, rightCol + 60, yPosition + 15);
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.text(`Device Latency Offset:`, leftCol, yPosition + 25);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.deviceLatencyOffsetMs.toFixed(2)} ms`, leftCol + 60, yPosition + 25);
+  pdf.setFont('helvetica', 'normal');
+  
+  pdf.text(`Calibration Date:`, rightCol, yPosition + 25);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toLocaleDateString() : 'Not calibrated'}`, rightCol + 60, yPosition + 25);
+  pdf.setFont('helvetica', 'normal');
+  
+  yPosition += 50;
+  
+  // Test Results Section Header
+  if (yPosition > pageHeight - 80) {
+    addFooter(1);
+    pdf.addPage();
+    addHeader();
+    yPosition = 35;
+  }
+  
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Test Results Analysis', 15, yPosition);
   yPosition += 20;
   
-  // Profile information
-  pdf.setFontSize(14);
-  pdf.text('Profile Information', 20, yPosition);
-  yPosition += 10;
-  
-  pdf.setFontSize(12);
-  pdf.text(`Name: ${data.profile.name}`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Age: ${data.profile.age || 'Not specified'}`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Sport: ${data.profile.sport || 'Not specified'}`, 20, yPosition);
-  yPosition += 15;
-  
-  // Calibration information
-  pdf.setFontSize(14);
-  pdf.text('Device Calibration', 20, yPosition);
-  yPosition += 10;
-  
-  pdf.setFontSize(12);
-  pdf.text(`Refresh Rate: ${data.profile.refreshRateHz} Hz`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Touch Sampling: ${data.profile.touchSamplingHz} Hz`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Device Latency Offset: ${data.profile.deviceLatencyOffsetMs.toFixed(2)} ms`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Calibrated: ${data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toLocaleDateString() : 'Never'}`, 20, yPosition);
-  yPosition += 15;
+  let pageNumber = 1;
   
   // Session summaries
   data.sessions.forEach((session, index) => {
-    if (yPosition > 250) {
+    // Check if we need a new page
+    if (yPosition > pageHeight - 100) {
+      addFooter(pageNumber);
       pdf.addPage();
-      yPosition = 20;
+      addHeader();
+      pageNumber++;
+      yPosition = 35;
     }
     
     const sessionTrials = data.trials.filter(trial => 
@@ -147,91 +265,200 @@ export function generatePDFSummary(data: ExportData): Blob {
     const allTrials = data.trials.filter(trial => trial.sessionId === session.id && !trial.isPractice);
     const outliersCount = allTrials.filter(trial => trial.excludedFlag).length;
     
-    pdf.setFontSize(14);
-    pdf.text(`Session ${index + 1}: ${session.testType} - ${session.stimulusType}`, 20, yPosition);
-    yPosition += 10;
+    // Session header with background
+    pdf.setFillColor(240, 248, 255);
+    pdf.rect(15, yPosition - 8, pageWidth - 30, 20, 'F');
     
-    pdf.setFontSize(12);
-    pdf.text(`Date: ${session.startedAt ? new Date(session.startedAt).toLocaleDateString() : 'N/A'}`, 20, yPosition);
-    yPosition += 8;
-    pdf.text(`Valid Trials: ${sessionTrials.length} (${outliersCount} outliers excluded)`, 20, yPosition);
-    yPosition += 8;
-    pdf.text(`Outlier Detection: ${outlierMethodName}`, 20, yPosition);
-    yPosition += 8;
-    pdf.text(`Mean RT: ${meanRT.toFixed(2)} ms`, 20, yPosition);
-    yPosition += 8;
-    pdf.text(`SD: ${sdRT.toFixed(2)} ms`, 20, yPosition);
-    yPosition += 8;
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(26, 54, 93);
+    pdf.text(`Session ${index + 1}: ${session.testType.toUpperCase()} Test`, 20, yPosition);
+    
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(`${session.stimulusType?.charAt(0).toUpperCase() + session.stimulusType?.slice(1)} Stimulus`, 20, yPosition + 8);
+    
+    // Date in top right
+    pdf.text(`${session.startedAt ? new Date(session.startedAt).toLocaleDateString() : 'N/A'}`, pageWidth - 20, yPosition, { align: 'right' });
+    
+    yPosition += 25;
+    
+    // Results table
+    pdf.setFontSize(10);
+    pdf.setTextColor(0, 0, 0);
+    
+    // Table headers
+    const tableY = yPosition;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Metric', 25, tableY);
+    pdf.text('Value', 80, tableY);
+    pdf.text('Details', 130, tableY);
+    
+    // Table separator line
+    pdf.setDrawColor(200, 200, 200);
+    pdf.line(20, tableY + 3, pageWidth - 20, tableY + 3);
+    
+    yPosition += 10;
+    pdf.setFont('helvetica', 'normal');
+    
+    // Data rows
+    const rowHeight = 8;
+    let currentRow = 0;
+    
+    // Valid trials
+    pdf.text('Valid Trials', 25, yPosition + (currentRow * rowHeight));
+    pdf.text(`${sessionTrials.length}`, 80, yPosition + (currentRow * rowHeight));
+    pdf.text(`(${outliersCount} outliers excluded)`, 130, yPosition + (currentRow * rowHeight));
+    currentRow++;
+    
+    // Mean RT
+    pdf.text('Mean RT', 25, yPosition + (currentRow * rowHeight));
+    pdf.text(`${meanRT.toFixed(1)} ms`, 80, yPosition + (currentRow * rowHeight));
+    pdf.text('Raw reaction time including all components', 130, yPosition + (currentRow * rowHeight));
+    currentRow++;
+    
+    // Standard deviation
+    pdf.text('Standard Dev.', 25, yPosition + (currentRow * rowHeight));
+    pdf.text(`${sdRT.toFixed(1)} ms`, 80, yPosition + (currentRow * rowHeight));
+    pdf.text('Variability measure', 130, yPosition + (currentRow * rowHeight));
+    currentRow++;
+    
+    // Outlier method
+    pdf.text('Outlier Method', 25, yPosition + (currentRow * rowHeight));
+    pdf.text(`${outlierMethod.toUpperCase()}`, 80, yPosition + (currentRow * rowHeight));
+    pdf.text(`${outlierMethodName}`, 130, yPosition + (currentRow * rowHeight));
+    currentRow++;
     
     // Add MIT information if available
     if (session.movementInitiationTime && data.mitData) {
       const mitCorrectedMean = Math.max(meanRT - session.movementInitiationTime, 0);
-      pdf.text(`MIT-Corrected RT: ${mitCorrectedMean.toFixed(2)} ms (Cognitive Processing)`, 20, yPosition);
-      yPosition += 8;
-      pdf.text(`Movement Time (MIT): ${session.movementInitiationTime.toFixed(2)} ms`, 20, yPosition);
-      yPosition += 8;
+      
+      // MIT-corrected RT
+      pdf.text('MIT-Corrected RT', 25, yPosition + (currentRow * rowHeight));
+      pdf.text(`${mitCorrectedMean.toFixed(1)} ms`, 80, yPosition + (currentRow * rowHeight));
+      pdf.text('Cognitive processing time only', 130, yPosition + (currentRow * rowHeight));
+      currentRow++;
+      
+      // Movement time
+      pdf.text('Movement Time', 25, yPosition + (currentRow * rowHeight));
+      pdf.text(`${session.movementInitiationTime.toFixed(1)} ms`, 80, yPosition + (currentRow * rowHeight));
+      pdf.text('Physical movement component (MIT)', 130, yPosition + (currentRow * rowHeight));
+      currentRow++;
     }
     
-    yPosition += 7;
+    yPosition += (currentRow * rowHeight) + 15;
   });
   
   // Add a Scientific Methodology section
-  if (yPosition > 200) {
+  if (yPosition > pageHeight - 120) {
+    addFooter(pageNumber);
     pdf.addPage();
-    yPosition = 20;
+    addHeader();
+    pageNumber++;
+    yPosition = 35;
   }
   
-  pdf.setFontSize(14);
-  pdf.text('Scientific Methodology', 20, yPosition);
-  yPosition += 10;
+  pdf.setFontSize(18);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Scientific Methodology & Data Processing', 15, yPosition);
+  yPosition += 20;
   
-  pdf.setFontSize(12);
-  const methodologyText = [
-    'Data Processing Notes:',
-    '• Outlier detection methods used vary by session (see individual session details)',
-    '• MAD (Median Absolute Deviation): Robust method resistant to extreme outliers',
-    '• Percentage Trimming: Removes fastest/slowest 2.5% of trials',
-    '• IQR Method: Uses interquartile range boundaries for outlier detection', 
-    '• Standard Deviation: Classic method using ±2.5σ boundaries',
-    '',
-    'MIT (Movement Initiation Time) Corrections:',
-    '• Raw RT = Stimulus Detection + Movement Time + System Latency',
-    '• MIT-corrected values isolate cognitive processing by subtracting movement time',
-    '• Only compare results within the same stimulus modality',
-    '',
-    'Data Quality Assurance:',
-    '• Practice trials excluded from analysis',
-    '• Anticipatory responses (<100ms) and delayed responses (>1000ms) flagged',
-    '• Cross-modal comparisons require scientific caution due to pathway differences'
-  ];
-  
-  methodologyText.forEach(line => {
-    if (yPosition > 270) {
+  // Methodology sections with professional formatting
+  const addMethodologySection = (title: string, items: string[], bgColor: [number, number, number] = [250, 250, 250]) => {
+    if (yPosition > pageHeight - 100) {
+      addFooter(pageNumber);
       pdf.addPage();
-      yPosition = 20;
+      addHeader();
+      pageNumber++;
+      yPosition = 35;
     }
-    pdf.text(line, 20, yPosition);
-    yPosition += 6;
-  });
+    
+    const sectionHeight = 15 + (items.length * 6);
+    pdf.setFillColor(...bgColor);
+    pdf.rect(15, yPosition - 5, pageWidth - 30, sectionHeight, 'F');
+    
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(26, 54, 93);
+    pdf.text(title, 20, yPosition + 5);
+    
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(0, 0, 0);
+    
+    items.forEach((item, index) => {
+      pdf.text(item, 25, yPosition + 15 + (index * 6));
+    });
+    
+    yPosition += sectionHeight + 10;
+  };
   
-  yPosition += 10;
+  // Data processing methods
+  addMethodologySection('Outlier Detection Methods', [
+    '• MAD (Median Absolute Deviation): Robust statistical method resistant to extreme outliers',
+    '• Percentage Trimming: Removes fastest and slowest 2.5% of reaction times',
+    '• IQR (Interquartile Range): Uses Q1-1.5×IQR and Q3+1.5×IQR boundaries',
+    '• Standard Deviation: Traditional method using mean ± 2.5 standard deviations',
+    '• Method selection varies by session based on researcher preference'
+  ], [245, 250, 255]);
   
-  // Metadata
-  if (yPosition > 220) {
+  // MIT methodology
+  addMethodologySection('Movement Initiation Time (MIT) Analysis', [
+    '• MIT measured using 30-tap finger tapping protocol',
+    '• Raw RT = Stimulus Detection Time + Movement Time + System Latency',
+    '• MIT-corrected RT isolates cognitive processing by subtracting movement component',
+    '• MIT reliability calculated using Intraclass Correlation Coefficient (ICC)',
+    '• Only sessions with reliable MIT data (ICC > 0.70) provide corrected values'
+  ], [250, 255, 245]);
+  
+  // Data quality standards
+  addMethodologySection('Data Quality Assurance', [
+    '• Practice trials excluded from all statistical analyses',
+    '• Anticipatory responses (<100ms) automatically flagged as outliers',
+    '• Delayed responses (>1000ms for SRT, >1500ms for CRT) flagged as outliers',
+    '• False alarm responses in Go/No-Go tests excluded from RT calculations',
+    '• Cross-modal stimulus comparisons require scientific interpretation caution'
+  ], [255, 250, 245]);
+  
+  // Technical specifications
+  addMethodologySection('Technical Measurement Standards', [
+    '• High-resolution timing using Performance.now() API (sub-millisecond precision)',
+    '• Device latency compensation through calibration protocols',
+    '• Touch event sampling optimized for rapid response detection',
+    '• Results valid for within-modality comparisons and longitudinal tracking',
+    '• Export data includes both raw and processed values for transparency'
+  ], [250, 250, 255]);
+  
+  // Report footer metadata
+  if (yPosition > pageHeight - 80) {
+    addFooter(pageNumber);
     pdf.addPage();
-    yPosition = 20;
+    addHeader();
+    pageNumber++;
+    yPosition = 35;
   }
   
-  pdf.setFontSize(14);
-  pdf.text('Export Information', 20, yPosition);
-  yPosition += 10;
+  // Final metadata section
+  pdf.setFillColor(240, 240, 240);
+  pdf.rect(15, yPosition - 5, pageWidth - 30, 35, 'F');
   
   pdf.setFontSize(12);
-  pdf.text(`Export Date: ${new Date(data.metadata.exportDate).toLocaleDateString()}`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Application Version: ${data.metadata.version}`, 20, yPosition);
-  yPosition += 8;
-  pdf.text(`Device: ${data.metadata.deviceInfo.substring(0, 50)}`, 20, yPosition);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(26, 54, 93);
+  pdf.text('Report Generation Information', 20, yPosition + 5);
+  
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(0, 0, 0);
+  
+  pdf.text(`Generated: ${new Date(data.metadata.exportDate).toLocaleDateString()} at ${new Date(data.metadata.exportDate).toLocaleTimeString()}`, 25, yPosition + 15);
+  pdf.text(`Platform: QuickReflex v${data.metadata.version} - Research-Grade Reaction Time Testing`, 25, yPosition + 22);
+  pdf.text(`Device: ${data.metadata.deviceInfo.substring(0, 80)}`, 25, yPosition + 29);
+  
+  // Add final footer
+  addFooter(pageNumber);
   
   return pdf.output('blob');
 }
