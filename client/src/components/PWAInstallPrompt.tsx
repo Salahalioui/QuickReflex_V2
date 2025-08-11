@@ -115,7 +115,7 @@ export function PWAInstallPrompt() {
           <Button
             size="sm"
             onClick={handleInstallClick}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white text-xs h-8"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600 text-xs h-8"
           >
             <Download className="h-3 w-3 mr-1" />
             Install App
@@ -124,7 +124,7 @@ export function PWAInstallPrompt() {
             variant="outline"
             size="sm"
             onClick={handleLaterClick}
-            className="text-xs h-8 border-gray-300 text-gray-600 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="text-xs h-8 border-gray-300 text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
           >
             Later
           </Button>
