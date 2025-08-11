@@ -93,6 +93,7 @@ export default function Settings() {
           refreshRateHz: 60,
           touchSamplingHz: 120,
           deviceLatencyOffsetMs: 12.5,
+          calibrationTimestamp: null,
           deviceInfoString: navigator.userAgent,
         });
         toast({

@@ -188,7 +188,7 @@ export function downloadFile(content: string | Blob, filename: string, mimeType:
 /**
  * Generate SPSS syntax for importing CSV data
  */
-export function generateSPSSSyntax(): string {
+export function generateSPSSSyntax(data?: ExportData): string {
   return `
 * SPSS Syntax for importing QuickReflex CSV data
 * Replace 'path/to/your/file.csv' with actual file path

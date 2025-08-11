@@ -331,7 +331,7 @@ export const useStore = create<AppStore>()(
         
         // Find the most recent MIT session for this profile
         const sessions = await db.getTestSessions();
-        const userSessions = sessions.filter(s => s.profileId === currentProfile.id);
+        const userSessions = sessions.filter((s: any) => s.profileId === currentProfile.id);
         const mitSessions = userSessions
           .filter((s: any) => s.testType === 'MIT' && s.movementInitiationTime)
           .sort((a: any, b: any) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
