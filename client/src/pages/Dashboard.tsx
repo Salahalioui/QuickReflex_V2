@@ -70,25 +70,98 @@ export default function Dashboard() {
 
   if (!currentProfile) {
     return (
-      <div className="p-4">
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="mb-4">
-              <span className="material-icons text-6xl text-gray-400 mb-4">person</span>
-            </div>
-            <h3 className="text-lg font-medium mb-2">Welcome to QuickReflex</h3>
-            <p className="text-gray-600 mb-4">
-              Create a profile to start reaction time testing
-            </p>
-            <Button 
-              onClick={() => setLocation('/settings')}
-              data-testid="button-create-profile"
-              className="text-[#080808]"
-            >
-              Create Profile
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="p-4 space-y-6 min-h-screen flex flex-col">
+        {/* Welcome Hero Section */}
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="w-full max-w-md mx-auto shadow-lg border-2 border-primary/10">
+            <CardContent className="p-8 text-center">
+              {/* Logo/Icon */}
+              <div className="mb-6">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                  <span className="material-icons text-3xl text-white">bolt</span>
+                </div>
+              </div>
+              
+              {/* Welcome Text */}
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                Welcome to QuickReflex
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                Professional reaction time testing for athletes, coaches, and researchers
+              </p>
+              
+              {/* Features List */}
+              <div className="mb-8 space-y-3">
+                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                  <div className="w-6 h-6 bg-speed/20 rounded-full flex items-center justify-center mr-3">
+                    <span className="material-icons text-xs text-speed">speed</span>
+                  </div>
+                  Simple & Choice Reaction Time Tests
+                </div>
+                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                  <div className="w-6 h-6 bg-focus/20 rounded-full flex items-center justify-center mr-3">
+                    <span className="material-icons text-xs text-focus">psychology</span>
+                  </div>
+                  Movement Initiation Time Analysis
+                </div>
+                <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                  <div className="w-6 h-6 bg-precision/20 rounded-full flex items-center justify-center mr-3">
+                    <span className="material-icons text-xs text-precision">analytics</span>
+                  </div>
+                  Research-Grade Data Export
+                </div>
+              </div>
+              
+              {/* CTA Button */}
+              <Button 
+                size="lg"
+                className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-[1.02]"
+                onClick={() => setLocation('/settings')}
+                data-testid="button-create-profile"
+              >
+                <span className="material-icons mr-2">person_add</span>
+                Create Your Profile
+              </Button>
+              
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+                Get started in less than 30 seconds
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Bottom Features Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+          <Card className="text-center p-4 bg-gradient-to-br from-speed/5 to-speed/10 border-speed/20">
+            <CardContent className="p-0">
+              <div className="w-10 h-10 bg-speed rounded-xl flex items-center justify-center mx-auto mb-3">
+                <span className="material-icons text-white text-lg">timer</span>
+              </div>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Precision Timing</h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300">Sub-millisecond accuracy</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center p-4 bg-gradient-to-br from-focus/5 to-focus/10 border-focus/20">
+            <CardContent className="p-0">
+              <div className="w-10 h-10 bg-focus rounded-xl flex items-center justify-center mx-auto mb-3">
+                <span className="material-icons text-white text-lg">science</span>
+              </div>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Research Grade</h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300">Validated methodologies</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="text-center p-4 bg-gradient-to-br from-precision/5 to-precision/10 border-precision/20">
+            <CardContent className="p-0">
+              <div className="w-10 h-10 bg-precision rounded-xl flex items-center justify-center mx-auto mb-3">
+                <span className="material-icons text-white text-lg">cloud_download</span>
+              </div>
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Data Export</h4>
+              <p className="text-xs text-gray-600 dark:text-gray-300">CSV, PDF, JSON formats</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
