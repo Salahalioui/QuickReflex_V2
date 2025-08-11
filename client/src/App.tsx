@@ -63,8 +63,9 @@ function App() {
                 {() => (
                   <MITTest 
                     onComplete={(result) => {
-                      // Handle MIT completion - could navigate to results or back to test selection
+                      // MIT completed - navigate back to settings with success message
                       console.log('MIT completed:', result);
+                      window.location.href = '/settings';
                     }} 
                     onCancel={() => {
                       window.history.back();

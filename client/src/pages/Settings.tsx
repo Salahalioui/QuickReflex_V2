@@ -311,7 +311,7 @@ export default function Settings() {
               
               <Button
                 variant="outline"
-                onClick={() => setLocation('/tests/mit')}
+                onClick={() => setLocation('/test/mit')}
                 data-testid="button-mit-test"
               >
                 {mitData ? 'Redo MIT' : 'MIT Test'}

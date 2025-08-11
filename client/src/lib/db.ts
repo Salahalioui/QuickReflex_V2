@@ -158,6 +158,32 @@ class IndexedDBStorage {
     });
   }
 
+  async getTestSessions(): Promise<TestSession[]> {
+    const db = await this.ensureDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['testSessions'], 'readonly');
+      const store = transaction.objectStore('testSessions');
+      const request = store.getAll();
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+  }
+
+  async getTestSessions(): Promise<TestSession[]> {
+    const db = await this.ensureDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['testSessions'], 'readonly');
+      const store = transaction.objectStore('testSessions');
+      const request = store.getAll();
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+  }
+
   // Trial operations
   async createTrial(trialData: Omit<Trial, 'id' | 'createdAt'>): Promise<Trial> {
     const db = await this.ensureDB();
