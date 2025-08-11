@@ -14,6 +14,7 @@ import TestModule from "@/pages/TestModule";
 import TestSelect from "@/pages/TestSelect";
 import Results from "@/pages/Results";
 import Settings from "@/pages/Settings";
+import MITTest from "@/pages/MITTest";
 
 function App() {
   const { loadProfiles, isCalibrated, settings } = useStore();
@@ -58,6 +59,19 @@ function App() {
               <Route path="/" component={Dashboard} />
               <Route path="/calibration" component={Calibration} />
               <Route path="/test/select" component={TestSelect} />
+              <Route path="/test/mit">
+                {() => (
+                  <MITTest 
+                    onComplete={(result) => {
+                      // Handle MIT completion - could navigate to results or back to test selection
+                      console.log('MIT completed:', result);
+                    }} 
+                    onCancel={() => {
+                      window.history.back();
+                    }}
+                  />
+                )}
+              </Route>
               <Route path="/test/:type" component={TestModule} />
               <Route path="/results" component={Results} />
               <Route path="/settings" component={Settings} />

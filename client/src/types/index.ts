@@ -65,3 +65,10 @@ export interface TestRunnerState {
   responseTime?: number;
   practiceMode: boolean;
 }
+
+export interface MITResult {
+  meanMIT: number;
+  sdMIT: number;
+  reliability: number;
+  validTaps: number;
+}

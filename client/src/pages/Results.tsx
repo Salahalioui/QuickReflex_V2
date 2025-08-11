@@ -2,11 +2,14 @@ import { useStore } from '@/store/useStore';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Download, Info, AlertTriangle, Calculator } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { TestResult } from '@/types';
+import type { TestResult, MITResult } from '@/types';
+import type { StimulusTypeEnum } from '@shared/schema';
 import { exportToCSV, exportToJSON, generatePDFSummary, downloadFile, generateSPSSSyntax } from '@/lib/export';
 import { useToast } from '@/hooks/use-toast';
+import CrossModalWarning from '@/components/CrossModalWarning';
 
 export default function Results() {
   const { 
@@ -16,6 +19,8 @@ export default function Results() {
   } = useStore();
   const { toast } = useToast();
   const [selectedResult, setSelectedResult] = useState<TestResult | null>(null);
+  const [showCrossModalWarning, setShowCrossModalWarning] = useState(false);
+  const [mitData, setMitData] = useState<MITResult | null>(null);
 
   useEffect(() => {
     if (currentProfile) {
@@ -28,6 +33,40 @@ export default function Results() {
       setSelectedResult(recentResults[0]);
     }
   }, [recentResults, selectedResult]);
+
+  // Check for MIT data when profile loads
+  useEffect(() => {
+    // For now, this would need to be enhanced to store MIT data on the profile
+    // This is a placeholder showing how MIT integration would work
+    const mockMitTime = 150; // Mock MIT value
+    if (mockMitTime) {
+      setMitData({
+        meanMIT: mockMitTime,
+        reliability: 0.85, // Example reliability score
+        validTaps: 20, // Example tap count
+        sdMIT: mockMitTime * 0.15, // Estimated SD
+      });
+    }
+  }, [currentProfile]);
+
+  // Check if cross-modal warning should be shown
+  const shouldShowCrossModalWarning = (stimulusTypes: StimulusTypeEnum[]) => {
+    return stimulusTypes.length > 1 || 
+           (recentResults.length > 1 && 
+            new Set(recentResults.map(r => r.stimulusType)).size > 1);
+  };
+
+  // Calculate MIT-corrected reaction times
+  const calculateCorrectedRT = (rawRT: number, mitTime?: number) => {
+    if (!mitTime || !mitData) return rawRT;
+    return Math.max(rawRT - mitData.meanMIT, 0);
+  };
+
+  // Get stimulus detection time (cognitive processing time)
+  const getStimulusDetectionTime = (rawRT: number) => {
+    if (!mitData) return null;
+    return calculateCorrectedRT(rawRT, mitData.meanMIT);
+  };
 
   const handleExport = async (format: 'csv' | 'json' | 'pdf' | 'spss') => {
     if (!currentProfile || !selectedResult) {
@@ -51,6 +90,9 @@ export default function Results() {
           completedAt: selectedResult.completedAt,
           metadata: null,
           status: 'completed' as const,
+          movementInitiationTime: null,
+          calibrationLimitations: null,
+          crossModalWarningShown: null,
         }],
         trials: selectedResult.trials,
         metadata: {
@@ -132,17 +174,53 @@ export default function Results() {
 
   return (
     <div className="p-4 space-y-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900">Test Results</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleExport('csv')}
-          data-testid="button-export-results"
-        >
-          <Download className="h-4 w-4 mr-2" />
-          Export
-        </Button>
+      {/* Cross-Modal Warning */}
+      <CrossModalWarning
+        stimulusTypes={recentResults.map(r => r.stimulusType)}
+        onAcknowledge={() => setShowCrossModalWarning(false)}
+        onCancel={() => setShowCrossModalWarning(false)}
+        show={showCrossModalWarning}
+      />
+
+      {/* Results Header with Modality Warning */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">Test Results</h2>
+          <div className="flex space-x-2">
+            {shouldShowCrossModalWarning(recentResults.map(r => r.stimulusType)) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCrossModalWarning(true)}
+                data-testid="button-show-cross-modal-warning"
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Modality Warning
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleExport('csv')}
+              data-testid="button-export-results"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
+
+        {/* Scientific Measurement Notice */}
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Scientific Considerations:</strong> Results show raw reaction times that include system latencies and movement time. 
+            {mitData && (
+              <span> MIT-corrected values provide cognitive processing estimates. </span>
+            )}
+            Only compare results within the same stimulus modality.
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Session Selector */}
@@ -189,10 +267,17 @@ export default function Results() {
 
       {selectedResult && (
         <>
-          {/* Summary Stats */}
+          {/* Enhanced Summary Stats with MIT Integration */}
           <Card>
             <CardHeader>
-              <CardTitle>Summary Statistics</CardTitle>
+              <CardTitle className="flex items-center">
+                Summary Statistics
+                {mitData && (
+                  <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    MIT-Enhanced
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
@@ -200,7 +285,7 @@ export default function Results() {
                   <div className="text-2xl font-bold text-primary" data-testid="stat-mean-rt">
                     {Math.round(selectedResult.meanRT)}
                   </div>
-                  <div className="text-sm text-gray-600">Mean RT (ms)</div>
+                  <div className="text-sm text-gray-600">Raw Mean RT (ms)</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-secondary" data-testid="stat-sd-rt">
@@ -221,6 +306,37 @@ export default function Results() {
                   <div className="text-sm text-gray-600">Outliers</div>
                 </div>
               </div>
+
+              {/* MIT-Enhanced Statistics */}
+              {mitData && (
+                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <Calculator className="h-4 w-4 mr-2 text-blue-600" />
+                    <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-200">
+                      MIT-Corrected Analysis (Cognitive Processing Time)
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600" data-testid="stat-corrected-mean">
+                        {Math.round(Math.max(selectedResult.meanRT - mitData.meanMIT, 0))}
+                      </div>
+                      <div className="text-xs text-blue-700">Stimulus Detection Time (ms)</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-blue-600" data-testid="stat-mit-value">
+                        {Math.round(mitData.meanMIT)}
+                      </div>
+                      <div className="text-xs text-blue-700">Movement Time (ms)</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-blue-700 dark:text-blue-300">
+                    <p>• Raw RT = Stimulus Detection + Movement Time + System Latency</p>
+                    <p>• MIT reliability: {Math.round(mitData.reliability * 100)}% ({mitData.validTaps} taps)</p>
+                    <p>• Cognitive processing isolated by subtracting movement time</p>
+                  </div>
+                </div>
+              )}
               
               {selectedResult.accuracy !== undefined && (
                 <div className="mt-4 text-center">

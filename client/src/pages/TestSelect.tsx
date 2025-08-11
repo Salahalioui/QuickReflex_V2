@@ -37,6 +37,18 @@ const testModules = [
     duration: '~5 min',
     path: '/test/gonogo',
     testId: 'test-module-gonogo'
+  },
+  {
+    id: 'MIT',
+    title: 'Movement Time Test',
+    description: 'Finger tapping for movement isolation',
+    icon: 'touch_app',
+    bgClass: 'bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/30',
+    color: 'bg-orange-500 text-white',
+    trials: '20+ taps',
+    duration: '~2 min',
+    path: '/test/mit',
+    testId: 'test-module-mit'
   }
 ];
 

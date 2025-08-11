@@ -5,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Play } from 'lucide-react';
+import { AlertTriangle, Play, Info, Settings } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TestRunner from '@/components/TestRunner';
+import CrossModalWarning from '@/components/CrossModalWarning';
+import CalibrationTransparency from '@/components/CalibrationTransparency';
+import { useCalibrationLimitations } from '@/components/CalibrationTransparency';
 import type { TestConfiguration, TestTypeEnum, StimulusTypeEnum } from '@/types';
+import { CalibrationLimitationEnum } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 
 const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
@@ -56,6 +61,10 @@ export default function TestModule() {
   const [selectedVariant, setSelectedVariant] = useState<'2' | '4'>('2');
   const [isRunning, setIsRunning] = useState(false);
   const [configuration, setConfiguration] = useState<TestConfiguration | null>(null);
+  const [showCrossModalWarning, setShowCrossModalWarning] = useState(false);
+  const [crossModalWarningAcknowledged, setCrossModalWarningAcknowledged] = useState(false);
+  const [calibrationLimitations, setCalibrationLimitations] = useState<CalibrationLimitationEnum[]>([]);
+  const [activeTab, setActiveTab] = useState('setup');
 
   const testType = params.type?.toLowerCase() || 'srt';
   const baseConfig = TEST_CONFIGURATIONS[testType];
@@ -115,8 +124,26 @@ export default function TestModule() {
       return;
     }
 
+    // Check for cross-modal warning if multiple stimulus types are being used
+    // For now, we check if this is part of a battery or if user has previously selected multiple types
+    const needsCrossModalWarning = testType === 'battery' || 
+                                   (testType !== 'mit' && !crossModalWarningAcknowledged);
+    
+    if (needsCrossModalWarning && !crossModalWarningAcknowledged) {
+      // Show warning for battery tests or first-time users
+      setShowCrossModalWarning(true);
+      return;
+    }
+
     try {
-      await startTest(configuration);
+      // Create enhanced configuration with calibration limitations
+      const enhancedConfig = {
+        ...configuration,
+        calibrationLimitations: calibrationLimitations.join(','),
+        crossModalWarningShown: crossModalWarningAcknowledged
+      };
+      
+      await startTest(enhancedConfig);
       setIsRunning(true);
     } catch (error) {
       toast({
@@ -125,6 +152,18 @@ export default function TestModule() {
         variant: "destructive",
       });
     }
+  };
+
+  const handleCrossModalWarningAcknowledge = () => {
+    setCrossModalWarningAcknowledged(true);
+    setShowCrossModalWarning(false);
+    // Automatically start the test after acknowledgment
+    handleStartTest();
+  };
+
+  const handleCrossModalWarningCancel = () => {
+    setShowCrossModalWarning(false);
+    setLocation('/test/select');
   };
 
   const handleTestComplete = async () => {
@@ -216,6 +255,14 @@ export default function TestModule() {
 
   return (
     <div className="p-4 space-y-6">
+      {/* Cross-Modal Warning Modal */}
+      <CrossModalWarning
+        stimulusTypes={[selectedStimulus]}
+        onAcknowledge={handleCrossModalWarningAcknowledge}
+        onCancel={handleCrossModalWarningCancel}
+        show={showCrossModalWarning}
+      />
+
       {/* Test Header */}
       <Card>
         <CardHeader>
@@ -257,7 +304,36 @@ export default function TestModule() {
         </Alert>
       )}
 
-      {/* Test Configuration */}
+      {/* Scientific Measurement Limitations Notice */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Research-Grade Considerations:</strong> This app provides scientific-inspired measurements 
+          with known limitations. See the Calibration tab below for detailed measurement transparency 
+          and cross-modal comparison guidelines.
+        </AlertDescription>
+      </Alert>
+
+      {/* Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 w-full">
+          <TabsTrigger value="setup" data-testid="tab-setup">
+            <Play className="h-4 w-4 mr-2" />
+            Test Setup
+          </TabsTrigger>
+          <TabsTrigger value="calibration" data-testid="tab-calibration">
+            <Settings className="h-4 w-4 mr-2" />
+            Calibration
+          </TabsTrigger>
+          <TabsTrigger value="instructions" data-testid="tab-instructions">
+            <Info className="h-4 w-4 mr-2" />
+            Instructions
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Test Setup Tab */}
+        <TabsContent value="setup" className="space-y-6">
+          {/* Test Configuration */}
       <Card>
         <CardHeader>
           <CardTitle>Test Configuration</CardTitle>
@@ -345,57 +421,6 @@ export default function TestModule() {
         </CardContent>
       </Card>
 
-      {/* Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Instructions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 text-sm">
-            {testType === 'srt' && (
-              <div>
-                <p>• Tap the screen as quickly as possible when you detect the stimulus</p>
-                <p>• Keep your finger ready above the screen</p>
-                <p>• Focus on being fast but avoid false starts</p>
-              </div>
-            )}
-            
-            {testType === 'crt' && (
-              <div>
-                <p>• Different stimuli require different responses</p>
-                {selectedVariant === '2' ? (
-                  <div>
-                    <p>• Blue stimulus (left) = Tap left side</p>
-                    <p>• Green stimulus (right) = Tap right side</p>
-                  </div>
-                ) : (
-                  <div>
-                    <p>• Red = Up, Blue = Down, Green = Left, Yellow = Right</p>
-                    <p>• Tap the corresponding area of the screen</p>
-                  </div>
-                )}
-                <p>• Be both fast and accurate</p>
-              </div>
-            )}
-            
-            {testType === 'gonogo' && (
-              <div>
-                <p>• Green "GO" stimulus = Tap the screen quickly</p>
-                <p>• Red "STOP" stimulus = DO NOT tap (inhibit response)</p>
-                <p>• Focus on accuracy - avoiding false alarms is important</p>
-              </div>
-            )}
-
-            <div className="pt-2 border-t">
-              <p className="font-medium">General Tips:</p>
-              <p>• Find a comfortable position and hold your device steady</p>
-              <p>• Minimize distractions during the test</p>
-              <p>• Take a short break if you feel fatigued</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Start Button */}
       <div className="flex space-x-4">
         <Button 
@@ -417,6 +442,87 @@ export default function TestModule() {
           Cancel
         </Button>
       </div>
+    </TabsContent>
+
+        {/* Calibration Transparency Tab */}
+        <TabsContent value="calibration" className="space-y-6">
+          <CalibrationTransparency
+            stimulusType={selectedStimulus}
+            deviceInfo={currentProfile?.deviceInfoString || undefined}
+            refreshRateHz={currentProfile?.refreshRateHz}
+            limitations={calibrationLimitations}
+            onLimitationsUpdate={setCalibrationLimitations}
+          />
+        </TabsContent>
+
+        {/* Instructions Tab */}
+        <TabsContent value="instructions" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Instructions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4 text-sm">
+                {testType === 'srt' && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Simple Reaction Time (SRT)</h4>
+                    <p>• Tap the screen as quickly as possible when you detect the stimulus</p>
+                    <p>• Keep your finger ready above the screen</p>
+                    <p>• Focus on being fast but avoid false starts</p>
+                    <p>• This measures basic processing speed and motor response time</p>
+                  </div>
+                )}
+                
+                {testType === 'crt' && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Choice Reaction Time (CRT)</h4>
+                    <p>• Different stimuli require different responses</p>
+                    {selectedVariant === '2' ? (
+                      <div>
+                        <p>• Blue stimulus (left) = Tap left side</p>
+                        <p>• Green stimulus (right) = Tap right side</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p>• Red = Up, Blue = Down, Green = Left, Yellow = Right</p>
+                        <p>• Tap the corresponding area of the screen</p>
+                      </div>
+                    )}
+                    <p>• Be both fast and accurate</p>
+                    <p>• This measures decision-making speed and response selection</p>
+                  </div>
+                )}
+                
+                {testType === 'gonogo' && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Go/No-Go Test</h4>
+                    <p>• Green "GO" stimulus = Tap the screen quickly</p>
+                    <p>• Red "STOP" stimulus = DO NOT tap (inhibit response)</p>
+                    <p>• Focus on accuracy - avoiding false alarms is important</p>
+                    <p>• This measures inhibitory control and response suppression</p>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t space-y-2">
+                  <h4 className="font-medium">General Tips:</h4>
+                  <p>• Find a comfortable position and hold your device steady</p>
+                  <p>• Minimize distractions during the test</p>
+                  <p>• Take a short break if you feel fatigued</p>
+                  <p>• Results will include both raw reaction times and calculated Stimulus Detection Time (if MIT is available)</p>
+                </div>
+
+                <div className="pt-4 border-t space-y-2">
+                  <h4 className="font-medium">Scientific Considerations:</h4>
+                  <p>• Raw reaction times include system latencies and movement time</p>
+                  <p>• Compare results within the same stimulus modality only</p>
+                  <p>• Consider running a Movement Time Test (MIT) for cognitive processing isolation</p>
+                  <p>• Results are relative measurements, not absolute timing values</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
