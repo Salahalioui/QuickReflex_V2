@@ -110,7 +110,7 @@ export function generatePDFSummary(data: ExportData): Blob {
   yPosition += 8;
   pdf.text(`Device Latency Offset: ${data.profile.deviceLatencyOffsetMs.toFixed(2)} ms`, 20, yPosition);
   yPosition += 8;
-  pdf.text(`Calibrated: ${data.profile.calibrationTimestamp?.toLocaleDateString() || 'Never'}`, 20, yPosition);
+  pdf.text(`Calibrated: ${data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toLocaleDateString() : 'Never'}`, 20, yPosition);
   yPosition += 15;
   
   // Session summaries
