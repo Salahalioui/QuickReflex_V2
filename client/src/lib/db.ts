@@ -294,6 +294,91 @@ class IndexedDBStorage {
       request.onerror = () => reject(request.error);
     });
   }
+
+  // Data management operations
+  async clearAllData(): Promise<void> {
+    const db = await this.ensureDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['profiles', 'testSessions', 'trials'], 'readwrite');
+      
+      const profileStore = transaction.objectStore('profiles');
+      const sessionStore = transaction.objectStore('testSessions');
+      const trialStore = transaction.objectStore('trials');
+      
+      const clearProfiles = profileStore.clear();
+      const clearSessions = sessionStore.clear();
+      const clearTrials = trialStore.clear();
+      
+      let completed = 0;
+      const total = 3;
+      
+      const checkCompletion = () => {
+        completed++;
+        if (completed === total) {
+          resolve();
+        }
+      };
+      
+      clearProfiles.onsuccess = checkCompletion;
+      clearSessions.onsuccess = checkCompletion;
+      clearTrials.onsuccess = checkCompletion;
+      
+      clearProfiles.onerror = () => reject(clearProfiles.error);
+      clearSessions.onerror = () => reject(clearSessions.error);
+      clearTrials.onerror = () => reject(clearTrials.error);
+    });
+  }
+
+  async getAllData(): Promise<{
+    profiles: Profile[];
+    sessions: TestSession[];
+    trials: Trial[];
+  }> {
+    const db = await this.ensureDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['profiles', 'testSessions', 'trials'], 'readonly');
+      
+      const profileStore = transaction.objectStore('profiles');
+      const sessionStore = transaction.objectStore('testSessions');
+      const trialStore = transaction.objectStore('trials');
+      
+      const getProfiles = profileStore.getAll();
+      const getSessions = sessionStore.getAll();
+      const getTrials = trialStore.getAll();
+      
+      let results: any = {};
+      let completed = 0;
+      const total = 3;
+      
+      const checkCompletion = () => {
+        completed++;
+        if (completed === total) {
+          resolve(results);
+        }
+      };
+      
+      getProfiles.onsuccess = () => {
+        results.profiles = getProfiles.result;
+        checkCompletion();
+      };
+      
+      getSessions.onsuccess = () => {
+        results.sessions = getSessions.result;
+        checkCompletion();
+      };
+      
+      getTrials.onsuccess = () => {
+        results.trials = getTrials.result;
+        checkCompletion();
+      };
+      
+      getProfiles.onerror = () => reject(getProfiles.error);
+      getSessions.onerror = () => reject(getSessions.error);
+      getTrials.onerror = () => reject(getTrials.error);
+    });
+  }
 }
 
 export const db = new IndexedDBStorage();

@@ -16,7 +16,9 @@ export default function Settings() {
     updateSettings,
     createProfile,
     updateProfile,
-    getMITResult 
+    getMITResult,
+    exportAllData,
+    clearAllData
   } = useStore();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -111,20 +113,45 @@ export default function Settings() {
     }
   };
 
-  const handleClearData = () => {
-    // This would clear all data from IndexedDB
-    toast({
-      title: "Data Cleared",
-      description: "All data has been cleared from the app.",
-    });
+  const handleClearData = async () => {
+    try {
+      await clearAllData();
+      toast({
+        title: "Data Cleared",
+        description: "All data has been cleared from the app.",
+      });
+    } catch (error) {
+      toast({
+        title: "Clear Failed",
+        description: "Failed to clear data from the app.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleExportAllData = () => {
-    // This would export all data
-    toast({
-      title: "Export Started",
-      description: "Your data export is being prepared.",
-    });
+  const handleExportAllData = async () => {
+    if (!currentProfile) {
+      toast({
+        title: "Export Failed",
+        description: "Please create a profile before exporting data.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await exportAllData();
+      toast({
+        title: "Export Complete",
+        description: "Your data has been exported successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export your data.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

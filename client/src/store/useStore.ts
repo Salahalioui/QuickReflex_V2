@@ -57,6 +57,10 @@ interface AppStore extends NavigationState {
   // MIT actions
   saveMITResult: (mitData: { meanMIT: number; sdMIT: number; reliability: number; validTaps: number }) => Promise<void>;
   getMITResult: () => Promise<{ meanMIT: number; sdMIT: number; reliability: number; validTaps: number } | null>;
+  
+  // Data management actions
+  exportAllData: () => Promise<void>;
+  clearAllData: () => Promise<void>;
 }
 
 const defaultSettings: AppSettings = {
@@ -343,7 +347,7 @@ export const useStore = create<AppStore>()(
         if (mitSessions.length === 0) return null;
         
         const latestMitSession = mitSessions[0];
-        const mitData = latestMitSession.metadata?.mitData;
+        const mitData = (latestMitSession.metadata as any)?.mitData;
         
         if (mitData && latestMitSession.movementInitiationTime) {
           return {
@@ -355,6 +359,69 @@ export const useStore = create<AppStore>()(
         }
         
         return null;
+      },
+      
+      // Data management actions
+      exportAllData: async () => {
+        const { currentProfile } = get();
+        if (!currentProfile) {
+          throw new Error('No profile selected');
+        }
+        
+        // Get all data from the database
+        const allData = await db.getAllData();
+        
+        // Filter data for current profile
+        const userSessions = allData.sessions.filter(session => session.profileId === currentProfile.id);
+        const userTrials = allData.trials.filter(trial => 
+          userSessions.some(session => session.id === trial.sessionId)
+        );
+        
+        // Get MIT data
+        const mitResult = await get().getMITResult();
+        
+        // Create export data structure
+        const exportData = {
+          profile: currentProfile,
+          sessions: userSessions,
+          trials: userTrials,
+          mitData: mitResult,
+          metadata: {
+            exportDate: new Date().toISOString(),
+            version: '1.0.0',
+            deviceInfo: navigator.userAgent,
+          },
+        };
+        
+        // Create and download JSON file
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+          type: 'application/json',
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `quickreflex-data-${currentProfile.name}-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      },
+      
+      clearAllData: async () => {
+        // Clear all data from IndexedDB
+        await db.clearAllData();
+        
+        // Reset store state
+        set({
+          currentProfile: null,
+          profiles: [],
+          recentResults: [],
+          testRunner: null,
+          currentSession: null,
+          isCalibrated: false,
+          calibrationData: defaultCalibration,
+        });
       },
     }),
     {
