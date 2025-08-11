@@ -6,6 +6,22 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Add proper MIME type handling for PWA assets
+app.get('/manifest.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.sendFile('manifest.json', { root: 'public' });
+});
+
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile('sw.js', { root: 'public' });
+});
+
+app.get('/icon-*.svg', (req, res) => {
+  res.setHeader('Content-Type', 'image/svg+xml');
+  res.sendFile(req.path, { root: 'public' });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

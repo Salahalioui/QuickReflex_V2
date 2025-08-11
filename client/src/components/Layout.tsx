@@ -4,6 +4,7 @@ import BottomNavigation from "./BottomNavigation";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { useLocation } from "wouter";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 interface LayoutProps {
   children: ReactNode;
@@ -55,6 +56,9 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Bottom Navigation */}
       <BottomNavigation />
+      
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
     </div>
   );
 }

@@ -2,8 +2,8 @@ const CACHE_NAME = 'quickreflex-v1.0.0';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/icon-192x192.svg',
+  '/icon-512x512.svg',
   'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap',
   'https://fonts.googleapis.com/icon?family=Material+Icons'
 ];
@@ -178,8 +178,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: 'Your test results are ready for review',
-    icon: '/icon-192x192.png',
-    badge: '/icon-192x192.png',
+    icon: '/icon-192x192.svg',
+    badge: '/icon-192x192.svg',
     tag: 'quickreflex-notification',
     data: {
       url: '/results'
