@@ -27,7 +27,7 @@
       ]
     },
     {
-      "source": "/icon-*.svg",
+      "source": "/icon-(.*).svg",
       "headers": [
         {
           "key": "Content-Type",
