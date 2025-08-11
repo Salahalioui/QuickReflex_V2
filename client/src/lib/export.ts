@@ -33,7 +33,7 @@ export function exportToCSV(data: ExportData): string {
         session.id,
         session.testType,
         session.stimulusType || '',
-        session.startedAt?.toISOString() || '',
+        session.startedAt ? new Date(session.startedAt).toISOString() : '',
         trial.id,
         trial.trialNumber.toString(),
         trial.isPractice ? '1' : '0',
@@ -49,7 +49,7 @@ export function exportToCSV(data: ExportData): string {
         data.profile.touchSamplingHz.toString(),
         data.profile.deviceLatencyOffsetMs.toString(),
         `"${data.profile.deviceInfoString || ''}"`,
-        data.profile.calibrationTimestamp?.toISOString() || '',
+        data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toISOString() : '',
         session.crossModalWarningShown ? '1' : '0',
         `"${session.calibrationLimitations || ''}"`,
       ];
@@ -137,7 +137,7 @@ export function generatePDFSummary(data: ExportData): Blob {
     yPosition += 10;
     
     pdf.setFontSize(12);
-    pdf.text(`Date: ${session.startedAt?.toLocaleDateString()}`, 20, yPosition);
+    pdf.text(`Date: ${session.startedAt ? new Date(session.startedAt).toLocaleDateString() : 'N/A'}`, 20, yPosition);
     yPosition += 8;
     pdf.text(`Valid Trials: ${sessionTrials.length}`, 20, yPosition);
     yPosition += 8;
@@ -158,11 +158,11 @@ export function generatePDFSummary(data: ExportData): Blob {
   yPosition += 10;
   
   pdf.setFontSize(12);
-  pdf.text(`Export Date: ${data.metadata.exportDate}`, 20, yPosition);
+  pdf.text(`Export Date: ${new Date(data.metadata.exportDate).toLocaleDateString()}`, 20, yPosition);
   yPosition += 8;
   pdf.text(`Application Version: ${data.metadata.version}`, 20, yPosition);
   yPosition += 8;
-  pdf.text(`Device: ${data.metadata.deviceInfo}`, 20, yPosition);
+  pdf.text(`Device: ${data.metadata.deviceInfo.substring(0, 50)}`, 20, yPosition);
   
   return pdf.output('blob');
 }
