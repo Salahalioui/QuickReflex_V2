@@ -115,7 +115,7 @@ export default function Dashboard() {
               {/* CTA Button */}
               <Button 
                 size="lg"
-                className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-[1.02]"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-[1.02] dark:bg-blue-500 dark:hover:bg-blue-600"
                 onClick={() => setLocation('/settings')}
                 data-testid="button-create-profile"
               >
