@@ -189,7 +189,7 @@ export default function Calibration() {
 
           {/* Save Button */}
           <Button 
-            className="w-full text-[#0d0c0c]" 
+            className="w-full bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:text-gray-200 dark:bg-green-500 dark:hover:bg-green-600 dark:disabled:bg-gray-600" 
             size="lg"
             onClick={handleSaveCalibration}
             disabled={isSaving}

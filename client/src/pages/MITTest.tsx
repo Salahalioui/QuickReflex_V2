@@ -269,10 +269,19 @@ export default function MITTest({ onComplete, onCancel }: MITTestProps) {
               </div>
               
               <div className="flex justify-center gap-4 pt-4">
-                <Button onClick={onCancel} variant="outline" data-testid="button-cancel">
+                <Button 
+                  onClick={onCancel} 
+                  variant="outline" 
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                  data-testid="button-cancel"
+                >
                   Cancel
                 </Button>
-                <Button onClick={startCountdown} data-testid="button-start">
+                <Button 
+                  onClick={startCountdown} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+                  data-testid="button-start"
+                >
                   <Play className="h-4 w-4 mr-2" />
                   Start Test
                 </Button>
@@ -420,17 +429,26 @@ export default function MITTest({ onComplete, onCancel }: MITTestProps) {
               )}
               
               <div className="flex justify-center gap-4">
-                <Button onClick={resetTest} variant="outline" data-testid="button-retry">
+                <Button 
+                  onClick={resetTest} 
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                  data-testid="button-retry"
+                >
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Try Again
                 </Button>
                 {tapData.length >= 3 && (
-                  <Button onClick={() => onComplete({
-                    averageMIT: calculateMIT(tapData).averageMIT,
-                    tapData: tapData,
-                    standardDeviation: calculateMIT(tapData).standardDeviation,
-                    reliability: calculateMIT(tapData).reliability
-                  })} data-testid="button-complete">
+                  <Button 
+                    onClick={() => onComplete({
+                      averageMIT: calculateMIT(tapData).averageMIT,
+                      tapData: tapData,
+                      standardDeviation: calculateMIT(tapData).standardDeviation,
+                      reliability: calculateMIT(tapData).reliability
+                    })} 
+                    className="bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
+                    data-testid="button-complete"
+                  >
                     Complete
                   </Button>
                 )}

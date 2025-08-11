@@ -182,7 +182,7 @@ export default function Dashboard() {
               </div>
               <Button 
                 size="sm" 
-                className="ml-4 text-[#000000]"
+                className="ml-4 bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-500 dark:hover:bg-orange-600"
                 onClick={() => setLocation('/calibration')}
                 data-testid="button-calibrate"
               >
@@ -282,6 +282,7 @@ export default function Dashboard() {
             <Button 
               variant="ghost" 
               size="sm"
+              className="text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
               onClick={() => setLocation('/results')}
               data-testid="button-view-all-results"
             >

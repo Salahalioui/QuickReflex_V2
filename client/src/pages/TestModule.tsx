@@ -192,7 +192,10 @@ export default function TestModule() {
           <CardContent className="pt-6 text-center">
             <h3 className="text-lg font-medium mb-2">Invalid Test Type</h3>
             <p className="text-gray-600 mb-4">The specified test type is not supported.</p>
-            <Button onClick={() => setLocation('/')}>
+            <Button 
+              onClick={() => setLocation('/')}
+              className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
               Return to Dashboard
             </Button>
           </CardContent>
@@ -431,6 +434,7 @@ export default function TestModule() {
               </div>
               <Button 
                 size="sm" 
+                className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
                 onClick={() => setLocation('/settings')}
                 data-testid="button-create-profile"
               >
@@ -452,6 +456,7 @@ export default function TestModule() {
               </div>
               <Button 
                 size="sm" 
+                className="bg-orange-600 hover:bg-orange-700 text-white dark:bg-orange-500 dark:hover:bg-orange-600"
                 onClick={() => setLocation('/calibration')}
                 data-testid="button-calibrate-device"
               >
@@ -466,7 +471,7 @@ export default function TestModule() {
       <div className="flex space-x-4">
         <Button 
           size="lg" 
-          className="flex-1"
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:text-gray-200 dark:bg-green-500 dark:hover:bg-green-600 dark:disabled:bg-gray-600"
           onClick={handleStartTest}
           disabled={!currentProfile || !isCalibrated}
           data-testid="button-start-test"
@@ -479,6 +484,7 @@ export default function TestModule() {
         
         <Button 
           variant="outline" 
+          className="border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
           onClick={() => setLocation('/')}
           data-testid="button-cancel"
         >
