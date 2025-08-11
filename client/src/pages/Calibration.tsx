@@ -95,8 +95,29 @@ export default function Calibration() {
       <div className="text-center mb-6">
         <Music2 className="h-16 w-16 text-primary mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Device Calibration</h2>
-        <p className="text-gray-600">Calibrate your device for accurate timing measurements</p>
+        <p className="text-gray-600">Calibrate display and touch timing for improved accuracy</p>
       </div>
+
+      {/* Scientific Limitation Notice */}
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          <div>
+            <strong>Calibration Scope & Limitations</strong>
+            <p className="text-sm mt-1">
+              This calibration addresses display refresh rate and touch sampling delays, but <strong>does not</strong> correct for:
+            </p>
+            <ul className="text-sm mt-2 list-disc list-inside space-y-1">
+              <li>Cross-modal neural processing differences (visual: 20-40ms, auditory: 8-10ms)</li>
+              <li>Audio buffer delays and haptic latency variations</li>
+              <li>Individual physiological response differences</li>
+            </ul>
+            <p className="text-sm mt-2 font-medium">
+              For research applications, analyze each stimulus modality separately and avoid cross-modal comparisons.
+            </p>
+          </div>
+        </AlertDescription>
+      </Alert>
 
       {/* Calibration Form */}
       <Card>

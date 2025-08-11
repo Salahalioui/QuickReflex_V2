@@ -66,6 +66,17 @@ export default function Dashboard() {
       bgClass: 'test-module-gonogo',
       testId: 'button-start-gonogo'
     },
+    {
+      id: 'MOVEMENT_TIME',
+      icon: 'gesture',
+      title: 'Movement Time',
+      description: 'Motor Response Estimation',
+      trials: '20 trials',
+      duration: '~3 min',
+      color: 'bg-blue-500 text-white',
+      bgClass: 'bg-gradient-to-br from-blue-400 to-blue-600 border-blue-300/30',
+      testId: 'button-start-movement'
+    },
   ];
 
   if (!currentProfile) {
@@ -172,7 +183,9 @@ export default function Dashboard() {
                 key={module.id}
                 className={`${module.bgClass} rounded-xl p-6 cursor-pointer transition-all duration-300 hover:scale-[1.02] elevation-2 hover:elevation-4 border-2`}
                 onClick={() => {
-                  const urlPath = module.id === 'GO_NO_GO' ? 'gonogo' : module.id.toLowerCase();
+                  const urlPath = module.id === 'GO_NO_GO' ? 'gonogo' : 
+                                  module.id === 'MOVEMENT_TIME' ? 'movement' : 
+                                  module.id.toLowerCase();
                   setLocation(`/test/${urlPath}`);
                 }}
                 data-testid={module.testId}
