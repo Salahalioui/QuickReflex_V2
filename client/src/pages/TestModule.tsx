@@ -124,13 +124,11 @@ export default function TestModule() {
       return;
     }
 
-    // Check for cross-modal warning if multiple stimulus types are being used
-    // For now, we check if this is part of a battery or if user has previously selected multiple types
-    const needsCrossModalWarning = testType === 'battery' || 
-                                   (testType !== 'mit' && !crossModalWarningAcknowledged);
+    // Check for cross-modal warning only for battery tests that use multiple modalities
+    // Single tests don't need the warning since they use only one stimulus type
+    const needsCrossModalWarning = testType === 'battery' && !crossModalWarningAcknowledged;
     
-    if (needsCrossModalWarning && !crossModalWarningAcknowledged) {
-      // Show warning for battery tests or first-time users
+    if (needsCrossModalWarning) {
       setShowCrossModalWarning(true);
       return;
     }
@@ -280,29 +278,7 @@ export default function TestModule() {
         </CardHeader>
       </Card>
 
-      {/* Calibration Warning */}
-      {!isCalibrated && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="flex items-center justify-between">
-              <div>
-                <strong>Device calibration required</strong>
-                <p className="text-sm mt-1">
-                  Calibrate your device for accurate timing measurements.
-                </p>
-              </div>
-              <Button 
-                size="sm" 
-                onClick={() => setLocation('/calibration')}
-                data-testid="button-calibrate-from-test"
-              >
-                Calibrate
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+
 
       {/* Scientific Measurement Limitations Notice */}
       <Alert>
@@ -421,6 +397,49 @@ export default function TestModule() {
         </CardContent>
       </Card>
 
+      {/* Requirement Checks */}
+      {!currentProfile && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <strong>Profile Required</strong>
+                <p className="text-sm mt-1">Create a profile to save your test results and settings.</p>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setLocation('/settings')}
+                data-testid="button-create-profile"
+              >
+                Create Profile
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {currentProfile && !isCalibrated && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <strong>Calibration Required</strong>
+                <p className="text-sm mt-1">Calibrate your device for accurate timing measurements.</p>
+              </div>
+              <Button 
+                size="sm" 
+                onClick={() => setLocation('/calibration')}
+                data-testid="button-calibrate-device"
+              >
+                Calibrate
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Start Button */}
       <div className="flex space-x-4">
         <Button 
@@ -431,7 +450,9 @@ export default function TestModule() {
           data-testid="button-start-test"
         >
           <Play className="h-5 w-5 mr-2" />
-          Start Test
+          {!currentProfile ? 'Create Profile First' : 
+           !isCalibrated ? 'Calibrate Device First' : 
+           'Start Test'}
         </Button>
         
         <Button 
