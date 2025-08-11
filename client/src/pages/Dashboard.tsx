@@ -83,6 +83,7 @@ export default function Dashboard() {
             <Button 
               onClick={() => setLocation('/settings')}
               data-testid="button-create-profile"
+              className="text-[#080808]"
             >
               Create Profile
             </Button>
