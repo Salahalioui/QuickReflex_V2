@@ -81,33 +81,98 @@ export function recordResponse(
 }
 
 /**
- * Clean reaction time data by removing outliers
+ * Outlier detection method types
+ */
+export type OutlierMethod = 'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr';
+
+/**
+ * Enhanced outlier detection options
+ */
+export interface OutlierDetectionOptions {
+  minRT: number;
+  maxRT: number;
+  removeMinMax: boolean;
+  method: OutlierMethod;
+  // Standard deviation method
+  stdDeviations: number;
+  // MAD method  
+  madThreshold: number;
+  // Percentage trimming method
+  trimPercentage: number;
+  // IQR method
+  iqrMultiplier: number;
+}
+
+/**
+ * Calculate median of an array
+ */
+function calculateMedian(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 
+    ? (sorted[mid - 1] + sorted[mid]) / 2 
+    : sorted[mid];
+}
+
+/**
+ * Calculate Median Absolute Deviation (MAD)
+ */
+function calculateMAD(values: number[]): { median: number; mad: number } {
+  const median = calculateMedian(values);
+  const deviations = values.map(value => Math.abs(value - median));
+  const mad = calculateMedian(deviations);
+  return { median, mad };
+}
+
+/**
+ * Calculate Interquartile Range (IQR) boundaries
+ */
+function calculateIQR(values: number[]): { q1: number; q3: number; iqr: number } {
+  const sorted = [...values].sort((a, b) => a - b);
+  const n = sorted.length;
+  const q1Index = Math.floor(n * 0.25);
+  const q3Index = Math.floor(n * 0.75);
+  const q1 = sorted[q1Index];
+  const q3 = sorted[q3Index];
+  const iqr = q3 - q1;
+  return { q1, q3, iqr };
+}
+
+/**
+ * Clean reaction time data by removing outliers using robust methods
  */
 export function cleanReactionTimes(
   trials: Array<{ rtRaw: number; rtCorrected?: number }>,
-  options: {
-    minRT: number;
-    maxRT: number;
-    removeMinMax: boolean;
-    stdDeviations: number;
-  } = {
+  options: Partial<OutlierDetectionOptions> = {}
+): Array<{ index: number; excluded: boolean; reason?: string }> {
+  // Default options
+  const config: OutlierDetectionOptions = {
     minRT: 100,
     maxRT: 1000,
     removeMinMax: true,
+    method: 'mad', // Default to MAD for robustness
     stdDeviations: 2.5,
-  }
-): Array<{ index: number; excluded: boolean; reason?: string }> {
-  const results = trials.map((_, index) => ({ index, excluded: false, reason: undefined as string | undefined }));
+    madThreshold: 3.0, // ~equivalent to 2.5 SD in normal distribution
+    trimPercentage: 2.5, // Remove top/bottom 2.5%
+    iqrMultiplier: 1.5, // Standard IQR outlier detection
+    ...options
+  };
+
+  const results = trials.map((_, index) => ({ 
+    index, 
+    excluded: false, 
+    reason: undefined as string | undefined 
+  }));
   
-  // Step 1: Remove trials outside min/max bounds
+  // Step 1: Remove trials outside absolute physiological bounds
   trials.forEach((trial, index) => {
     const rt = trial.rtCorrected || trial.rtRaw;
-    if (rt < options.minRT) {
+    if (rt < config.minRT) {
       results[index].excluded = true;
-      results[index].reason = `RT below minimum (${options.minRT}ms)`;
-    } else if (rt > options.maxRT) {
+      results[index].reason = `RT below minimum (${config.minRT}ms)`;
+    } else if (rt > config.maxRT) {
       results[index].excluded = true;
-      results[index].reason = `RT above maximum (${options.maxRT}ms)`;
+      results[index].reason = `RT above maximum (${config.maxRT}ms)`;
     }
   });
   
@@ -119,8 +184,8 @@ export function cleanReactionTimes(
     return results; // Not enough data for further cleaning
   }
   
-  // Step 2: Remove min and max values (one each)
-  if (options.removeMinMax && validTrials.length > 4) {
+  // Step 2: Remove min and max values (optional)
+  if (config.removeMinMax && validTrials.length > 4) {
     const validRTs = validTrials.map(t => t.rtCorrected || t.rtRaw);
     const minIndex = validIndices[validRTs.indexOf(Math.min(...validRTs))];
     const maxIndex = validIndices[validRTs.indexOf(Math.max(...validRTs))];
@@ -131,7 +196,7 @@ export function cleanReactionTimes(
     results[maxIndex].reason = 'Maximum value removed';
   }
   
-  // Get remaining valid trials
+  // Get remaining valid trials for outlier detection
   const remainingTrials = trials.filter((_, index) => !results[index].excluded);
   const remainingIndices = results.filter(r => !r.excluded).map(r => r.index);
   
@@ -139,22 +204,74 @@ export function cleanReactionTimes(
     return results;
   }
   
-  // Step 3: Remove outliers based on standard deviation
   const remainingRTs = remainingTrials.map(t => t.rtCorrected || t.rtRaw);
-  const mean = remainingRTs.reduce((sum, rt) => sum + rt, 0) / remainingRTs.length;
-  const stdDev = Math.sqrt(
-    remainingRTs.reduce((sum, rt) => sum + Math.pow(rt - mean, 2), 0) / remainingRTs.length
-  );
   
-  const threshold = options.stdDeviations * stdDev;
-  
-  remainingRTs.forEach((rt, relativeIndex) => {
-    const actualIndex = remainingIndices[relativeIndex];
-    if (Math.abs(rt - mean) > threshold) {
-      results[actualIndex].excluded = true;
-      results[actualIndex].reason = `Outlier (${options.stdDeviations}σ rule)`;
+  // Step 3: Apply selected outlier detection method
+  switch (config.method) {
+    case 'mad': {
+      const { median, mad } = calculateMAD(remainingRTs);
+      const threshold = config.madThreshold * mad;
+      
+      remainingRTs.forEach((rt, relativeIndex) => {
+        const actualIndex = remainingIndices[relativeIndex];
+        if (Math.abs(rt - median) > threshold) {
+          results[actualIndex].excluded = true;
+          results[actualIndex].reason = `Outlier (MAD method, ${config.madThreshold}×MAD)`;
+        }
+      });
+      break;
     }
-  });
+    
+    case 'percentage_trim': {
+      const sortedRTs = [...remainingRTs].sort((a, b) => a - b);
+      const trimCount = Math.floor(sortedRTs.length * (config.trimPercentage / 100));
+      const lowerBound = sortedRTs[trimCount];
+      const upperBound = sortedRTs[sortedRTs.length - 1 - trimCount];
+      
+      remainingRTs.forEach((rt, relativeIndex) => {
+        const actualIndex = remainingIndices[relativeIndex];
+        if (rt <= lowerBound || rt >= upperBound) {
+          results[actualIndex].excluded = true;
+          results[actualIndex].reason = `Outlier (${config.trimPercentage}% trimming)`;
+        }
+      });
+      break;
+    }
+    
+    case 'iqr': {
+      const { q1, q3, iqr } = calculateIQR(remainingRTs);
+      const lowerBound = q1 - (config.iqrMultiplier * iqr);
+      const upperBound = q3 + (config.iqrMultiplier * iqr);
+      
+      remainingRTs.forEach((rt, relativeIndex) => {
+        const actualIndex = remainingIndices[relativeIndex];
+        if (rt < lowerBound || rt > upperBound) {
+          results[actualIndex].excluded = true;
+          results[actualIndex].reason = `Outlier (IQR method, ${config.iqrMultiplier}×IQR)`;
+        }
+      });
+      break;
+    }
+    
+    case 'standard_deviation':
+    default: {
+      // Original SD method (kept for comparison)
+      const mean = remainingRTs.reduce((sum, rt) => sum + rt, 0) / remainingRTs.length;
+      const stdDev = Math.sqrt(
+        remainingRTs.reduce((sum, rt) => sum + Math.pow(rt - mean, 2), 0) / remainingRTs.length
+      );
+      const threshold = config.stdDeviations * stdDev;
+      
+      remainingRTs.forEach((rt, relativeIndex) => {
+        const actualIndex = remainingIndices[relativeIndex];
+        if (Math.abs(rt - mean) > threshold) {
+          results[actualIndex].excluded = true;
+          results[actualIndex].reason = `Outlier (${config.stdDeviations}σ rule)`;
+        }
+      });
+      break;
+    }
+  }
   
   return results;
 }
