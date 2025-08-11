@@ -94,11 +94,12 @@ export default function Results() {
           completedAt: selectedResult.completedAt,
           metadata: null,
           status: 'completed' as const,
-          movementInitiationTime: null,
+          movementInitiationTime: mitData?.meanMIT || null,
           calibrationLimitations: null,
           crossModalWarningShown: null,
         }],
-        trials: selectedResult.trials,
+        trials: selectedResult.trials || [],
+        mitData: mitData,
         metadata: {
           exportDate: new Date().toISOString(),
           version: '1.0.0',
@@ -123,7 +124,7 @@ export default function Results() {
           downloadFile(pdf, `${baseFilename}.pdf`, 'application/pdf');
           break;
         case 'spss':
-          const spssScript = generateSPSSSyntax();
+          const spssScript = generateSPSSSyntax(exportData);
           downloadFile(spssScript, `${baseFilename}-import.sps`, 'text/plain');
           break;
       }
@@ -133,9 +134,10 @@ export default function Results() {
         description: `Results exported in ${format.toUpperCase()} format.`,
       });
     } catch (error) {
+      console.error('Export error:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export results.",
+        description: error instanceof Error ? error.message : "Failed to export results.",
         variant: "destructive",
       });
     }
