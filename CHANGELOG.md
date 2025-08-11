@@ -5,60 +5,81 @@ All notable changes to QuickReflex will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2025-01-11
 
-### Added
-- Research-grade reaction time testing with three test modules (SRT, CRT, Go/No-Go)
-- Progressive Web App functionality with offline support
-- Device calibration system for timing accuracy
-- Scientific data export in multiple formats (CSV, JSON, PDF, SPSS)
-- Comprehensive Go/No-Go false alarm handling per scientific standards
-- Mobile-first responsive design with touch optimization
-- Dark mode support throughout the application
-- Real-time accuracy tracking for choice reaction time tests
-- Automatic outlier detection and trial exclusion
-- Visual feedback system for practice trials
+### Added - Movement Initiation Time (MIT) Integration
+- **Complete MIT Testing System**: 30-tap finger tapping protocol with ICC reliability calculations
+- **MIT Database Integration**: Full storage, retrieval, and management of MIT calibration data
+- **MIT-Corrected Analysis**: All reaction time measurements now subtract individual MIT values
+- **Settings MIT Display**: Calibration menu shows current MIT status, reliability metrics, and standard deviation
+- **Cross-Modal Scientific Warnings**: Proper research disclaimers when comparing across different stimulus modalities
+- **MIT Export Integration**: All export formats (CSV, JSON, PDF, SPSS) include comprehensive MIT data and corrections
+- **Enhanced Results Analysis**: MIT-corrected reaction time displays with cognitive processing time isolation
 
-### Test Modules
-- **Simple Reaction Time (SRT)**: Visual, auditory, and tactile stimulus options
-- **Choice Reaction Time (CRT)**: 2-choice and 4-choice directional responses with spatial validation
-- **Go/No-Go Test**: Inhibitory control assessment with 28/12 Go/No-Go distribution
+### Fixed - Export System Comprehensive Repairs
+- **Date Handling Issues**: Resolved date conversion errors in CSV and PDF exports that caused function failures
+- **Database Method Restoration**: Fixed missing `getTestSessions()` database method causing MIT data loading errors
+- **PDF Export Functionality**: Corrected multiple date formatting issues in PDF generation pipeline
+- **CSV Export Compatibility**: Enhanced date field handling for reliable CSV data export
+- **SPSS Export Parameters**: Fixed function signature to properly accept export data parameters
+- **TypeScript Compatibility**: Resolved all type errors and compatibility issues across the codebase
 
-### Technical Features
-- TypeScript implementation for type safety
-- Zustand state management with persistence
-- Drizzle ORM with PostgreSQL database
-- High-precision timing using Performance.now() API
-- Service worker for offline functionality
-- Responsive UI with Tailwind CSS and Shadcn/ui components
+### Enhanced - Scientific Validation and Research Compliance
+- **MIT Reliability Metrics**: Automatic ICC (Intraclass Correlation) and standard deviation calculations
+- **Cognitive Processing Focus**: MIT removal isolates pure cognitive response time from motor initiation
+- **Research-Grade Metadata**: Complete MIT test results, calibration timestamps, and reliability data in exports
+- **Cross-Modal Warnings**: Scientific disclaimers for comparing MIT and reaction times across modalities
+- **Enhanced Error Handling**: Detailed error logging and graceful failure handling throughout the system
 
-### Scientific Standards
-- False alarm exclusion from reaction time calculations
-- Anticipatory response detection (<100ms)
-- Delayed response flagging (>1000ms for Go/No-Go, >1500ms for others)
-- Statistical outlier removal using 2.5 standard deviation rule
-- Comprehensive metadata collection for research validity
-- Inhibition rate calculations for Go/No-Go tests
+### Changed - Architecture and Performance Improvements
+- **Database Integration**: Complete MIT data flow from testing → storage → display → export
+- **Export Data Structure**: Enhanced to include MIT corrections, raw data, and comprehensive metadata
+- **Results Page Analysis**: Real-time MIT-corrected reaction time calculations and displays
+- **Settings Calibration Menu**: Comprehensive MIT calibration status with reliability indicators
+- **Error Logging**: Enhanced export error reporting with detailed diagnostic information
 
-### Fixed
-- STOP signal auto-disappearing after 1.5 seconds in Go/No-Go tests
-- Calibration status persistence across sessions and page refreshes
-- Navigation routing for Go/No-Go test access
-- State management issues in timeout handling
-- Accuracy calculation and display in results tables
+### Technical Improvements
+- **Date Object Handling**: Robust date conversion for all timestamp fields in export functions
+- **Type Safety**: Enhanced TypeScript definitions for MIT data structures and export interfaces
+- **Database Methods**: Complete IndexedDB method implementations for MIT data persistence
+- **React State Management**: Proper MIT data loading and error state handling
+- **Export Validation**: Comprehensive data validation before export processing
 
-## [1.0.0] - 2025-01-09
+### Documentation Updates
+- **README Enhancement**: Complete MIT methodology documentation and usage guidelines
+- **Replit.md Updates**: Comprehensive project architecture documentation with MIT integration
+- **Scientific Citations**: Updated references to include MIT methodology from motor control literature
+- **Performance Guidelines**: MIT-specific timing accuracy and calibration recommendations
 
-### Added
-- Initial release of QuickReflex PWA
-- Core reaction time testing functionality
-- Basic user profile management
-- Device calibration system
-- Results visualization and export
+## [2.0.0] - 2024-12-15
 
----
+### Added - Initial Research-Grade Implementation
+- **Core Test Modules**: SRT, CRT (2-choice/4-choice), and Go/No-Go reaction time tests
+- **Multi-Modal Stimuli**: Visual, auditory, and tactile stimulus presentation across all test types
+- **Device Calibration**: Systematic latency correction and timing validation system
+- **Progressive Web App**: Complete PWA implementation with offline functionality
+- **Export System**: Multiple data export formats (CSV, JSON, PDF, SPSS) with research metadata
+- **Statistical Analysis**: Automated outlier detection, reliability metrics, and data cleaning
+- **Mobile Optimization**: Touch-friendly interface with responsive design for all device types
 
-## Version History
+### Technical Foundation
+- **React TypeScript Frontend**: Modern web application with Vite development environment
+- **Express Backend**: RESTful API with PostgreSQL database integration
+- **Drizzle ORM**: Type-safe database operations and schema management
+- **IndexedDB Storage**: Client-side data persistence for offline functionality
+- **Recharts Visualization**: Interactive data visualization and performance trend analysis
 
-- **v1.0.0**: Initial public release with core testing modules
-- **Development**: Continuous improvements based on scientific standards and user feedback
+## [1.0.0] - 2024-11-01
+
+### Added - Foundation Release
+- **Basic SRT Testing**: Simple Reaction Time measurement with visual stimuli
+- **User Profile System**: Profile creation and management for personalized testing
+- **Device Calibration Framework**: Initial timing accuracy improvements
+- **Data Storage**: Basic test result storage and retrieval
+- **PWA Foundation**: Service worker and manifest for app-like behavior
+
+### Technical Implementation
+- **Project Structure**: React + TypeScript frontend with Express backend
+- **Database Schema**: Initial PostgreSQL schema with Drizzle ORM
+- **UI Components**: Shadcn/ui component library integration
+- **Development Environment**: Vite build system and development server
