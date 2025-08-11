@@ -22,6 +22,7 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     practiceTrials: 5,
     isiMin: 1500,
     isiMax: 4000,
+    outlierMethod: 'mad', // Use robust MAD method by default
   },
   'crt': {
     type: 'CRT_2',
@@ -29,6 +30,7 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     practiceTrials: 8,
     isiMin: 1500,
     isiMax: 3000,
+    outlierMethod: 'mad',
   },
   'gonogo': {
     type: 'GO_NO_GO',
@@ -36,6 +38,7 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     practiceTrials: 8,
     isiMin: 1500,
     isiMax: 3000,
+    outlierMethod: 'mad',
   },
   'battery': {
     type: 'SRT',
@@ -43,6 +46,7 @@ const TEST_CONFIGURATIONS: Record<string, Partial<TestConfiguration>> = {
     practiceTrials: 15,
     isiMin: 1500,
     isiMax: 4000,
+    outlierMethod: 'mad',
   },
 };
 
@@ -58,6 +62,7 @@ export default function TestModule() {
   const { toast } = useToast();
   
   const [selectedStimulus, setSelectedStimulus] = useState<StimulusTypeEnum>('visual');
+  const [selectedOutlierMethod, setSelectedOutlierMethod] = useState<'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr'>('mad');
   const [selectedVariant, setSelectedVariant] = useState<'2' | '4'>('2');
   const [isRunning, setIsRunning] = useState(false);
   const [configuration, setConfiguration] = useState<TestConfiguration | null>(null);
@@ -91,8 +96,9 @@ export default function TestModule() {
       ...baseConfig,
       type: finalType,
       stimulusType: selectedStimulus,
+      outlierMethod: selectedOutlierMethod,
     } as TestConfiguration);
-  }, [testType, selectedStimulus, selectedVariant, baseConfig, setLocation, toast]);
+  }, [testType, selectedStimulus, selectedVariant, selectedOutlierMethod, baseConfig, setLocation, toast]);
 
   const handleStartTest = async () => {
     if (!currentProfile) {
@@ -360,6 +366,33 @@ export default function TestModule() {
               </Select>
             </div>
           )}
+
+          {/* Outlier Detection Method Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Outlier Detection Method
+            </label>
+            <Select 
+              value={selectedOutlierMethod} 
+              onValueChange={(value: 'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr') => setSelectedOutlierMethod(value)}
+            >
+              <SelectTrigger data-testid="select-outlier-method">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mad">MAD (Robust - Recommended)</SelectItem>
+                <SelectItem value="percentage_trim">Percentage Trimming (2.5%)</SelectItem>
+                <SelectItem value="iqr">IQR Method</SelectItem>
+                <SelectItem value="standard_deviation">Standard Deviation (Classic)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedOutlierMethod === 'mad' && 'Median Absolute Deviation - most robust against extreme outliers'}
+              {selectedOutlierMethod === 'percentage_trim' && 'Remove fastest/slowest 2.5% of trials - simple and transparent'}
+              {selectedOutlierMethod === 'iqr' && 'Interquartile Range method - removes values beyond Q1-1.5×IQR or Q3+1.5×IQR'}
+              {selectedOutlierMethod === 'standard_deviation' && 'Classic ±2.5 SD method - sensitive to extreme outliers'}
+            </p>
+          </div>
 
           {/* Test Parameters Display */}
           {configuration && (

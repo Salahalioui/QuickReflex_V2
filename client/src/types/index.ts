@@ -17,6 +17,7 @@ export interface TestConfiguration {
   practiceTrials: number;
   isiMin: number; // Inter-stimulus interval minimum (ms)
   isiMax: number; // Inter-stimulus interval maximum (ms)
+  outlierMethod?: 'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr';
 }
 
 export interface TestResult {

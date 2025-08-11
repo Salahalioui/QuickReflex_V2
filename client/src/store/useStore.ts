@@ -221,8 +221,8 @@ export const useStore = create<AppStore>()(
       },
       
       completeTest: async () => {
-        const { currentSession } = get();
-        if (!currentSession) return;
+        const { currentSession, testRunner } = get();
+        if (!currentSession || !testRunner) return;
         
         // Get all trials for this session
         const trials = await db.getTrialsBySession(currentSession.id);
@@ -236,9 +236,13 @@ export const useStore = create<AppStore>()(
           const validTrials = testTrials.filter(trial => trial.rtRaw !== null);
           const cleaningResults = cleanReactionTimes(validTrials as any[], {
             minRT: 100,
-            maxRT: 1000,
+            maxRT: testRunner.configuration.type === 'GO_NO_GO' ? 1000 : 1500,
             removeMinMax: true,
+            method: testRunner.configuration.outlierMethod || 'mad',
             stdDeviations: 2.5,
+            madThreshold: 3.0,
+            trimPercentage: 2.5,
+            iqrMultiplier: 1.5,
           });
           
           // Update trials with exclusion flags
