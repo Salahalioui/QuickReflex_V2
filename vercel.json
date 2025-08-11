@@ -7,37 +7,40 @@
       "runtime": "nodejs18.x"
     }
   },
-  "routes": [
+  "headers": [
     {
-      "src": "/manifest.json",
-      "headers": {
-        "Content-Type": "application/manifest+json"
-      },
-      "dest": "/manifest.json"
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
     },
     {
-      "src": "/sw.js",
-      "headers": {
-        "Content-Type": "application/javascript"
-      },
-      "dest": "/sw.js"
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript"
+        }
+      ]
     },
     {
-      "src": "/icon-.*\\.svg",
-      "headers": {
-        "Content-Type": "image/svg+xml"
-      }
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.js"
+      "source": "/icon-*.svg",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "image/svg+xml"
+        }
+      ]
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
     {
       "source": "/(.*)",
       "destination": "/api/index.js"
