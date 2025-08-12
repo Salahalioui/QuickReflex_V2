@@ -40,6 +40,14 @@ Preferred communication style: Simple, everyday language.
 - ✅ **UI Simplification**: Removed Full Battery cards from Dashboard and TestSelect components
 - ✅ **Outlier Method Integration**: Enhanced UI with outlier detection method selection and results display
 
+### Speed-Accuracy Trade-off & Critical Bug Fixes (January 2025) - COMPLETED
+- ✅ **IES Implementation**: Added Inverse Efficiency Score (IES = MeanRT ÷ ProportionCorrect) for CRT and Go/No-Go tests
+- ✅ **Fixed Accuracy Bug**: Corrected critical issue where errors were excluded as outliers instead of being included in accuracy calculations
+- ✅ **Proper RT Filtering**: Only correct responses now used for RT outlier analysis, all responses used for accuracy
+- ✅ **Enhanced PDF Reports**: Added IES metrics and comprehensive methodology documentation to export functionality
+- ✅ **Scientific Compliance**: Fixed accuracy calculations to show realistic performance (not artificial 100%)
+- ✅ **Vercel Deployment**: Fixed critical deployment issues with simplified static build configuration
+
 ## System Architecture
 
 ### Frontend Architecture

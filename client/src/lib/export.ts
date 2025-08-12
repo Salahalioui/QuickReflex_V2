@@ -272,16 +272,31 @@ export function generatePDFSummary(data: ExportData): Blob {
       reactionTimes.reduce((sum, rt) => sum + Math.pow(rt - meanRT, 2), 0) / reactionTimes.length
     );
     
+    // Get total trials and outliers count
+    const allTrials = data.trials.filter(trial => trial.sessionId === session.id && !trial.isPractice);
+    const outliersCount = allTrials.filter(trial => trial.excludedFlag).length;
+    
     // Extract outlier method from session metadata
     const outlierMethod = (session.metadata as any)?.configuration?.outlierMethod || 'standard_deviation';
     const outlierMethodName = outlierMethod === 'mad' ? 'MAD (Median Absolute Deviation)' :
                              outlierMethod === 'percentage_trim' ? 'Percentage Trimming (2.5%)' :
                              outlierMethod === 'iqr' ? 'IQR (Interquartile Range)' :
                              'Standard Deviation (±2.5σ)';
-    
-    // Get total trials and outliers count
-    const allTrials = data.trials.filter(trial => trial.sessionId === session.id && !trial.isPractice);
-    const outliersCount = allTrials.filter(trial => trial.excludedFlag).length;
+
+    // Calculate accuracy and IES for CRT and Go/No-Go tests  
+    let accuracy, ies;
+    if (session.testType === 'CRT_2' || session.testType === 'CRT_4' || session.testType === 'GO_NO_GO') {
+      const allTrialsForAccuracy = allTrials.filter(trial => trial.accuracy !== null);
+      if (allTrialsForAccuracy.length > 0) {
+        const correctTrials = allTrialsForAccuracy.filter(trial => trial.accuracy === true).length;
+        accuracy = (correctTrials / allTrialsForAccuracy.length) * 100;
+        
+        // Calculate IES (Inverse Efficiency Score) 
+        if (accuracy > 0) {
+          ies = meanRT / (accuracy / 100);
+        }
+      }
+    }
     
     // Session header with background
     pdf.setFillColor(240, 248, 255);
@@ -348,6 +363,21 @@ export function generatePDFSummary(data: ExportData): Blob {
     pdf.text(`${outlierMethodName}`, 130, yPosition + (currentRow * rowHeight));
     currentRow++;
     
+    // Add accuracy and IES for CRT and Go/No-Go tests
+    if (accuracy !== undefined) {
+      pdf.text('Accuracy', 25, yPosition + (currentRow * rowHeight));
+      pdf.text(`${accuracy.toFixed(1)}%`, 80, yPosition + (currentRow * rowHeight));
+      pdf.text('Percentage of correct responses', 130, yPosition + (currentRow * rowHeight));
+      currentRow++;
+      
+      if (ies !== undefined) {
+        pdf.text('IES Score', 25, yPosition + (currentRow * rowHeight));
+        pdf.text(`${ies.toFixed(1)}`, 80, yPosition + (currentRow * rowHeight));
+        pdf.text('Inverse Efficiency Score (lower = better)', 130, yPosition + (currentRow * rowHeight));
+        currentRow++;
+      }
+    }
+
     // Add MIT information if available
     if (session.movementInitiationTime && data.mitData) {
       const mitCorrectedMean = Math.max(meanRT - session.movementInitiationTime, 0);
@@ -430,6 +460,15 @@ export function generatePDFSummary(data: ExportData): Blob {
     '• MIT reliability calculated using Intraclass Correlation Coefficient (ICC)',
     '• Only sessions with reliable MIT data (ICC > 0.70) provide corrected values'
   ], [250, 255, 245]);
+
+  // IES methodology
+  addMethodologySection('Inverse Efficiency Score (IES) Analysis', [
+    '• IES = Mean RT ÷ Proportion Correct (accounts for speed-accuracy trade-off)',
+    '• Lower IES scores indicate better combined speed-accuracy performance',
+    '• Used for CRT and Go/No-Go tests where accuracy varies',
+    '• Enables comparison across conditions and groups with different strategies',
+    '• Calculated only when accuracy > 0% to avoid division by zero'
+  ], [255, 245, 250]);
   
   // Data quality standards
   addMethodologySection('Data Quality Assurance', [
