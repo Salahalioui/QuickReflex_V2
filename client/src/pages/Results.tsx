@@ -337,6 +337,37 @@ export default function Results() {
                 </div>
               </div>
 
+              {/* Accuracy and IES for CRT and Go/No-Go tests */}
+              {(selectedResult.type === 'CRT_2' || selectedResult.type === 'CRT_4' || selectedResult.type === 'GO_NO_GO') && (
+                <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="flex items-center mb-3">
+                    <Calculator className="h-4 w-4 mr-2 text-green-600" />
+                    <h4 className="text-sm font-semibold text-green-800 dark:text-green-200">
+                      Speed-Accuracy Analysis
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-green-600" data-testid="stat-accuracy">
+                        {selectedResult.accuracy !== undefined ? `${Math.round(selectedResult.accuracy)}%` : 'N/A'}
+                      </div>
+                      <div className="text-xs text-green-700">Overall Accuracy</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-green-600" data-testid="stat-ies">
+                        {selectedResult.ies !== undefined ? Math.round(selectedResult.ies) : 'N/A'}
+                      </div>
+                      <div className="text-xs text-green-700">IES Score</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-green-700 dark:text-green-300">
+                    <p>• IES = Mean RT ÷ Proportion Correct (lower = better performance)</p>
+                    <p>• Combines speed and accuracy to handle speed-accuracy trade-offs</p>
+                    <p>• Useful for comparing performance across conditions or groups</p>
+                  </div>
+                </div>
+              )}
+
               {/* MIT-Enhanced Statistics */}
               {mitData && (
                 <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -387,15 +418,7 @@ export default function Results() {
                   <p><strong>Valid Data:</strong> {selectedResult.validTrials} trials used for statistical analysis</p>
                 </div>
               </div>
-              
-              {selectedResult.accuracy !== undefined && (
-                <div className="mt-4 text-center">
-                  <div className="text-2xl font-bold text-primary" data-testid="stat-accuracy">
-                    {Math.round(selectedResult.accuracy)}%
-                  </div>
-                  <div className="text-sm text-gray-600">Accuracy</div>
-                </div>
-              )}
+
               
               {/* Go/No-Go specific metrics */}
               {selectedResult.type === 'GO_NO_GO' && (

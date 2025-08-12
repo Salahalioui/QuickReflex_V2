@@ -10,7 +10,7 @@ export function exportToCSV(data: ExportData): string {
     'Session_ID', 'Test_Type', 'Stimulus_Type', 'Session_Date', 'Outlier_Method',
     'Trial_ID', 'Trial_Number', 'Is_Practice', 'Stimulus_Detail',
     'RT_Raw_ms', 'RT_Corrected_ms', 'Stimulus_Detection_Time_ms', 'MIT_ms',
-    'Excluded', 'Exclusion_Reason', 'Accuracy', 
+    'Excluded', 'Exclusion_Reason', 'Accuracy', 'IES_Score',
     'Refresh_Rate_Hz', 'Touch_Sampling_Hz', 'Device_Latency_Offset_ms',
     'Device_Info', 'Calibration_Timestamp', 'Cross_Modal_Warning_Shown',
     'Calibration_Limitations'
@@ -23,6 +23,23 @@ export function exportToCSV(data: ExportData): string {
   
   data.sessions.forEach(session => {
     const sessionTrials = data.trials.filter(trial => trial.sessionId === session.id);
+    
+    // Calculate IES for this session (for CRT and Go/No-Go tests)
+    let sessionIES = '';
+    if ((session.testType === 'CRT_2' || session.testType === 'CRT_4' || session.testType === 'GO_NO_GO')) {
+      const validTrials = sessionTrials.filter(trial => !trial.isPractice && !trial.excludedFlag);
+      const trialsWithAccuracy = sessionTrials.filter(trial => !trial.isPractice && trial.accuracy !== null);
+      
+      if (validTrials.length > 0 && trialsWithAccuracy.length > 0) {
+        const meanRT = validTrials.reduce((sum, trial) => sum + (trial.rtCorrected || trial.rtRaw || 0), 0) / validTrials.length;
+        const correctTrials = trialsWithAccuracy.filter(trial => trial.accuracy === true).length;
+        const proportionCorrect = correctTrials / trialsWithAccuracy.length;
+        
+        if (proportionCorrect > 0) {
+          sessionIES = (meanRT / proportionCorrect).toString();
+        }
+      }
+    }
     
     sessionTrials.forEach(trial => {
       // Extract outlier method from session metadata
@@ -49,6 +66,7 @@ export function exportToCSV(data: ExportData): string {
         trial.excludedFlag ? '1' : '0',
         `"${trial.exclusionReason || ''}"`,
         trial.accuracy !== null ? (trial.accuracy ? '1' : '0') : '',
+        sessionIES, // IES score calculated at session level
         data.profile.refreshRateHz.toString(),
         data.profile.touchSamplingHz.toString(),
         data.profile.deviceLatencyOffsetMs.toString(),

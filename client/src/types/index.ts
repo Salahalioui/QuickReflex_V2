@@ -29,7 +29,8 @@ export interface TestResult {
   sdRT: number;
   validTrials: number;
   outliers: number;
-  accuracy?: number; // For Go/No-Go tests
+  accuracy?: number; // For CRT and Go/No-Go tests
+  ies?: number; // Inverse Efficiency Score for CRT and Go/No-Go tests
   completedAt: Date;
   outlierMethod?: 'standard_deviation' | 'mad' | 'percentage_trim' | 'iqr';
 }

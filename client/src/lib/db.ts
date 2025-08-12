@@ -253,22 +253,36 @@ class IndexedDBStorage {
           
           await new Promise((trialResolve) => {
             trialsRequest.onsuccess = () => {
-              const trials = trialsRequest.result.filter(trial => !trial.isPractice && !trial.excludedFlag);
+              // CRITICAL FIX: Separate trials for RT analysis vs accuracy analysis
+              const trialsForRTAnalysis = trialsRequest.result.filter(trial => !trial.isPractice && !trial.excludedFlag);
+              const allTrialsForAccuracy = trialsRequest.result.filter(trial => !trial.isPractice);
               
-              if (trials.length > 0) {
-                const reactionTimes = trials.map(t => t.rtCorrected || t.rtRaw || 0);
+              if (trialsForRTAnalysis.length > 0) {
+                const reactionTimes = trialsForRTAnalysis.map(t => t.rtCorrected || t.rtRaw || 0);
                 const meanRT = reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length;
                 const sdRT = Math.sqrt(
                   reactionTimes.reduce((sum, rt) => sum + Math.pow(rt - meanRT, 2), 0) / reactionTimes.length
                 );
                 
-                const accuracy = session.testType === 'GO_NO_GO' 
-                  ? trials.filter(t => t.accuracy).length / trials.length * 100
-                  : undefined;
+                // FIXED: Accuracy calculation includes ALL trials (not just non-excluded ones)
+                let accuracy: number | undefined;
+                if (session.testType === 'GO_NO_GO' || session.testType === 'CRT_2' || session.testType === 'CRT_4') {
+                  const trialsWithAccuracy = allTrialsForAccuracy.filter(t => t.accuracy !== null);
+                  accuracy = trialsWithAccuracy.length > 0 
+                    ? (trialsWithAccuracy.filter(t => t.accuracy === true).length / trialsWithAccuracy.length) * 100
+                    : undefined;
+                }
                 
                 // Extract outlier method from session metadata
                 const outlierMethod = session.metadata?.configuration?.outlierMethod || 'standard_deviation';
                 
+                // Calculate Inverse Efficiency Score (IES) for CRT and Go/No-Go
+                let ies: number | undefined;
+                if ((session.testType === 'CRT_2' || session.testType === 'CRT_4' || session.testType === 'GO_NO_GO') && 
+                    accuracy !== undefined && accuracy > 0) {
+                  ies = meanRT / (accuracy / 100); // IES = MeanRT / ProportionCorrect
+                }
+
                 results.push({
                   sessionId: session.id,
                   type: session.testType as any,
@@ -276,9 +290,10 @@ class IndexedDBStorage {
                   trials: trialsRequest.result,
                   meanRT,
                   sdRT,
-                  validTrials: trials.length,
+                  validTrials: trialsForRTAnalysis.length,
                   outliers: trialsRequest.result.filter(t => t.excludedFlag).length,
                   accuracy,
+                  ies, // Add IES to results
                   completedAt: session.completedAt || session.startedAt,
                   outlierMethod: outlierMethod as any,
                 });

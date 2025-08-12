@@ -237,28 +237,54 @@ export const useStore = create<AppStore>()(
         if (testTrials.length > 0) {
           // Apply outlier cleaning using the cleanReactionTimes function
           const { cleanReactionTimes } = await import('@/lib/timing');
-          const validTrials = testTrials.filter(trial => trial.rtRaw !== null);
-          const cleaningResults = cleanReactionTimes(validTrials as any[], {
-            minRT: 100,
-            maxRT: testRunner.configuration.type === 'GO_NO_GO' ? 1000 : 1500,
-            removeMinMax: true,
-            method: testRunner.configuration.outlierMethod || 'mad',
-            stdDeviations: 2.5,
-            madThreshold: 3.0,
-            trimPercentage: 2.5,
-            iqrMultiplier: 1.5,
-          });
           
-          // Update trials with exclusion flags
-          for (let i = 0; i < cleaningResults.length; i++) {
-            const result = cleaningResults[i];
-            const trial = testTrials[result.index];
+          // CRITICAL FIX: Only apply outlier detection to CORRECT responses for RT analysis
+          // For Go/No-Go: Only correct GO responses (excludes false alarms and missed responses)
+          // For CRT: Only correct responses (excludes wrong choice responses)
+          // Incorrect responses should be included in accuracy but excluded from RT analysis
+          let trialsForRTAnalysis;
+          
+          if (testRunner.configuration.type === 'GO_NO_GO') {
+            // For Go/No-Go: Only analyze RT from correct GO responses
+            trialsForRTAnalysis = testTrials.filter(trial => 
+              trial.rtRaw !== null && 
+              trial.stimulusDetail === 'go' && 
+              trial.accuracy === true
+            );
+          } else if (testRunner.configuration.type === 'CRT_2' || testRunner.configuration.type === 'CRT_4') {
+            // For CRT: Only analyze RT from correct responses
+            trialsForRTAnalysis = testTrials.filter(trial => 
+              trial.rtRaw !== null && 
+              trial.accuracy === true
+            );
+          } else {
+            // For SRT: All trials with valid RT (no accuracy concept)
+            trialsForRTAnalysis = testTrials.filter(trial => trial.rtRaw !== null);
+          }
+          
+          if (trialsForRTAnalysis.length > 0) {
+            const cleaningResults = cleanReactionTimes(trialsForRTAnalysis as any[], {
+              minRT: 100,
+              maxRT: testRunner.configuration.type === 'GO_NO_GO' ? 1000 : 1500,
+              removeMinMax: true,
+              method: testRunner.configuration.outlierMethod || 'mad',
+              stdDeviations: 2.5,
+              madThreshold: 3.0,
+              trimPercentage: 2.5,
+              iqrMultiplier: 1.5,
+            });
             
-            if (result.excluded) {
-              await db.updateTrial(trial.id, {
-                excludedFlag: true,
-                exclusionReason: result.reason || 'Unknown',
-              });
+            // Update trials with exclusion flags (only for RT outliers, not accuracy errors)
+            for (let i = 0; i < cleaningResults.length; i++) {
+              const result = cleaningResults[i];
+              const trial = trialsForRTAnalysis[result.index];
+              
+              if (result.excluded) {
+                await db.updateTrial(trial.id, {
+                  excludedFlag: true,
+                  exclusionReason: result.reason || 'Unknown',
+                });
+              }
             }
           }
         }
