@@ -15,6 +15,7 @@ import TestSelect from "@/pages/TestSelect";
 import Results from "@/pages/Results";
 import Settings from "@/pages/Settings";
 import MITTest from "@/pages/MITTest";
+import About from "@/pages/About";
 
 function App() {
   const { loadProfiles, isCalibrated, settings } = useStore();
@@ -76,6 +77,7 @@ function App() {
               <Route path="/test/:type" component={TestModule} />
               <Route path="/results" component={Results} />
               <Route path="/settings" component={Settings} />
+              <Route path="/about" component={About} />
               
               {/* Catch-all route */}
               <Route>

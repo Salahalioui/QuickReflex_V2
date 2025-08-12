@@ -30,12 +30,20 @@ export default function BottomNavigation() {
       testId: 'nav-results'
     },
     { 
-      id: 'profile', 
+      id: 'settings', 
       path: '/settings', 
       icon: 'tune', 
       label: 'Settings',
       color: 'text-secondary',
-      testId: 'nav-profile'
+      testId: 'nav-settings'
+    },
+    { 
+      id: 'about', 
+      path: '/about', 
+      icon: 'info', 
+      label: 'About',
+      color: 'text-blue-600',
+      testId: 'nav-about'
     },
   ];
 
