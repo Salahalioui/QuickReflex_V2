@@ -197,55 +197,61 @@ export function generatePDFSummary(data: ExportData): Blob {
   
   yPosition += 45;
   
-  // Enhanced Calibration Certificate Section
+  // Enhanced Calibration Certificate Section - IMPROVED LAYOUT
+  const certHeight = data.mitData ? 90 : 80;
   pdf.setFillColor(240, 248, 255);
-  pdf.rect(15, yPosition - 5, pageWidth - 30, 80, 'F');
+  pdf.rect(15, yPosition - 5, pageWidth - 30, certHeight, 'F');
   
   pdf.setFontSize(16);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(26, 54, 93);
-  pdf.text('CALIBRATION CERTIFICATE', 20, yPosition + 5);
+  pdf.text('CALIBRATION CERTIFICATE', 20, yPosition + 8);
   
-  pdf.setFontSize(10);
+  pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(0, 0, 0);
   
-  // Calibration method and standards
-  pdf.text('Calibration Method: Automated hardware detection with manual validation', leftCol, yPosition + 15);
-  pdf.text(`Calibration Standard: IEEE 1588-2019 for precision timing`, leftCol, yPosition + 22);
+  // Method and standard on separate lines
+  pdf.text('Calibration Method: Automated hardware detection with manual validation', 25, yPosition + 18);
+  pdf.text('Calibration Standard: IEEE 1588-2019 for precision timing', 25, yPosition + 25);
   
-  // Technical specifications
-  pdf.text(`Display Refresh Rate:`, leftCol, yPosition + 32);
+  // Technical specifications - better spacing
+  let certY = yPosition + 35;
+  pdf.text('Display Refresh Rate:', 25, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${data.profile.refreshRateHz} Hz`, leftCol + 60, yPosition + 32);
+  pdf.text(`${data.profile.refreshRateHz} Hz`, 80, certY);
   pdf.setFont('helvetica', 'normal');
   
-  pdf.text(`Touch Sampling Rate:`, rightCol, yPosition + 32);
+  pdf.text('Touch Sampling Rate:', 140, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${data.profile.touchSamplingHz} Hz`, rightCol + 60, yPosition + 32);
+  pdf.text(`${data.profile.touchSamplingHz} Hz`, 195, certY);
   pdf.setFont('helvetica', 'normal');
   
-  // Calculated latency metrics
+  certY += 8;
+  
+  // Calculated latency metrics with proper spacing
   const displayLatency = (1000 / data.profile.refreshRateHz) / 2;
   const touchLatency = (1000 / data.profile.touchSamplingHz) / 2;
   
-  pdf.text(`Display Latency (Mean ± SD):`, leftCol, yPosition + 42);
+  pdf.text('Display Latency (Mean ± SD):', 25, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${displayLatency.toFixed(2)} ± ${(displayLatency * 0.1).toFixed(2)} ms`, leftCol + 75, yPosition + 42);
+  pdf.text(`${displayLatency.toFixed(2)} ± ${(displayLatency * 0.1).toFixed(2)} ms`, 80, certY);
   pdf.setFont('helvetica', 'normal');
   
-  pdf.text(`Touch Latency (Mean ± SD):`, rightCol, yPosition + 42);
+  pdf.text('Touch Latency (Mean ± SD):', 140, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${touchLatency.toFixed(2)} ± ${(touchLatency * 0.1).toFixed(2)} ms`, rightCol + 70, yPosition + 42);
+  pdf.text(`${touchLatency.toFixed(2)} ± ${(touchLatency * 0.1).toFixed(2)} ms`, 195, certY);
   pdf.setFont('helvetica', 'normal');
   
-  // Combined system latency
-  pdf.text(`Total System Latency:`, leftCol, yPosition + 52);
+  certY += 8;
+  
+  // System info
+  pdf.text('Total System Latency:', 25, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${data.profile.deviceLatencyOffsetMs.toFixed(2)} ms`, leftCol + 65, yPosition + 52);
+  pdf.text(`${data.profile.deviceLatencyOffsetMs.toFixed(2)} ms`, 80, certY);
   pdf.setFont('helvetica', 'normal');
   
-  // Operating system and build information
+  // Operating system
   const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown';
   const osInfo = userAgent.includes('Windows') ? 'Windows' : 
                 userAgent.includes('Mac') ? 'macOS' : 
@@ -253,49 +259,50 @@ export function generatePDFSummary(data: ExportData): Blob {
                 userAgent.includes('Android') ? 'Android' : 
                 userAgent.includes('iOS') ? 'iOS' : 'Unknown OS';
   
-  pdf.text(`Operating System:`, rightCol, yPosition + 52);
+  pdf.text('Operating System:', 140, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${osInfo}`, rightCol + 55, yPosition + 52);
+  pdf.text(`${osInfo}`, 195, certY);
   pdf.setFont('helvetica', 'normal');
   
-  // Calibration certificate details
-  pdf.text(`Calibration Date:`, leftCol, yPosition + 62);
+  certY += 8;
+  
+  // Certificate details
+  pdf.text('Calibration Date:', 25, certY);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(`${data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toLocaleDateString() : 'Not calibrated'}`, leftCol + 55, yPosition + 62);
+  pdf.text(`${data.profile.calibrationTimestamp ? new Date(data.profile.calibrationTimestamp).toLocaleDateString() : 'Not calibrated'}`, 80, certY);
   pdf.setFont('helvetica', 'normal');
   
-  pdf.text(`Certificate ID:`, rightCol, yPosition + 62);
-  pdf.setFont('helvetica', 'bold');
   const certId = data.profile.calibrationTimestamp ? 
     `QR-${new Date(data.profile.calibrationTimestamp).getFullYear()}-${data.profile.id.substring(0, 8)}` : 'N/A';
-  pdf.text(`${certId}`, rightCol + 45, yPosition + 62);
+  pdf.text('Certificate ID:', 140, certY);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`${certId}`, 195, certY);
   pdf.setFont('helvetica', 'normal');
 
   // MIT Reliability Data (if available)
   if (data.mitData) {
-    pdf.text(`MIT Reliability (ICC):`, leftCol, yPosition + 72);
+    certY += 8;
+    pdf.text('MIT Reliability (ICC):', 25, certY);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`${(data.mitData.reliability * 100).toFixed(1)}%`, leftCol + 60, yPosition + 72);
+    pdf.text(`${(data.mitData.reliability * 100).toFixed(1)}%`, 80, certY);
     pdf.setFont('helvetica', 'normal');
     
-    pdf.text(`MIT Variability (CV):`, rightCol, yPosition + 72);
-    pdf.setFont('helvetica', 'bold');
     const cv = data.mitData.meanMIT > 0 ? ((data.mitData.sdMIT || 0) / data.mitData.meanMIT * 100) : 0;
-    pdf.text(`${cv.toFixed(1)}%`, rightCol + 55, yPosition + 72);
+    pdf.text('MIT Variability (CV):', 140, certY);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`${cv.toFixed(1)}%`, 195, certY);
     pdf.setFont('helvetica', 'normal');
-    
-    yPosition += 10;
   }
   
-  // Validation statement
-  pdf.setFontSize(8);
+  // Validation statement at bottom
+  pdf.setFontSize(7);
   pdf.setTextColor(100, 100, 100);
-  pdf.text('Calibration performed according to QuickReflex validation protocols. Device-specific variability accounted for in all measurements.', leftCol, yPosition + 82);
-  pdf.text('Certificate valid for current device configuration. Re-calibration required for hardware/OS changes.', leftCol, yPosition + 88);
+  const validationY = yPosition + certHeight - 8;
+  pdf.text('Calibration performed according to QuickReflex validation protocols. Certificate valid for current device configuration.', 25, validationY);
   pdf.setTextColor(0, 0, 0);
   pdf.setFontSize(10);
   
-  yPosition += 100;
+  yPosition += certHeight + 15;
   
   // Test Results Section Header
   if (yPosition > pageHeight - 80) {
@@ -421,7 +428,7 @@ export function generatePDFSummary(data: ExportData): Blob {
     pdf.text('Variability measure', 130, yPosition + (currentRow * rowHeight));
     currentRow++;
     
-    // Outlier method
+    // Outlier method - FIXED: Use actual method from session metadata
     pdf.text('Outlier Method', 25, yPosition + (currentRow * rowHeight));
     pdf.text(`${outlierMethod.toUpperCase()}`, 80, yPosition + (currentRow * rowHeight));
     pdf.text(`${outlierMethodName}`, 130, yPosition + (currentRow * rowHeight));
@@ -462,8 +469,8 @@ export function generatePDFSummary(data: ExportData): Blob {
     yPosition += (currentRow * rowHeight) + 15;
   });
   
-  // Add a Scientific Methodology section
-  if (yPosition > pageHeight - 120) {
+  // SIMPLIFIED: Essential methodology only (max 2-3 pages)
+  if (yPosition > pageHeight - 60) {
     addFooter(pageNumber);
     pdf.addPage();
     addHeader();
@@ -471,122 +478,43 @@ export function generatePDFSummary(data: ExportData): Blob {
     yPosition = 35;
   }
   
-  pdf.setFontSize(18);
+  pdf.setFontSize(14);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(26, 54, 93);
-  pdf.text('Scientific Methodology & Data Processing', 15, yPosition);
-  yPosition += 20;
+  pdf.text('Essential Methodology', 15, yPosition);
+  yPosition += 15;
   
-  // Methodology sections with professional formatting
-  const addMethodologySection = (title: string, items: string[], bgColor: [number, number, number] = [250, 250, 250]) => {
-    if (yPosition > pageHeight - 100) {
-      addFooter(pageNumber);
-      pdf.addPage();
-      addHeader();
-      pageNumber++;
-      yPosition = 35;
-    }
-    
-    const sectionHeight = 15 + (items.length * 6);
-    pdf.setFillColor(...bgColor);
-    pdf.rect(15, yPosition - 5, pageWidth - 30, sectionHeight, 'F');
-    
-    pdf.setFontSize(12);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(26, 54, 93);
-    pdf.text(title, 20, yPosition + 5);
-    
-    pdf.setFontSize(9);
-    pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(0, 0, 0);
-    
-    items.forEach((item, index) => {
-      pdf.text(item, 25, yPosition + 15 + (index * 6));
-    });
-    
-    yPosition += sectionHeight + 10;
-  };
-  
-  // Calibration methodology
-  addMethodologySection('Calibration & Validation Methodology', [
-    '• Hardware Detection: Automated refresh rate and touch sampling detection',
-    '• Latency Calculation: Display latency = (1000ms ÷ refresh rate) ÷ 2',
-    '• Touch Latency: Touch sampling latency = (1000ms ÷ sampling rate) ÷ 2',
-    '• System Latency: Combined display + touch + processing delays',
-    '• MIT Validation: 30-tap finger tapping protocol for movement time calibration',
-    '• ICC Reliability: Intraclass Correlation Coefficient for consistency measurement'
-  ], [240, 248, 255]);
-
-  // Data processing methods
-  addMethodologySection('Outlier Detection Methods', [
-    '• MAD (Median Absolute Deviation): Robust statistical method resistant to extreme outliers',
-    '• Percentage Trimming: Removes fastest and slowest 2.5% of reaction times',
-    '• IQR (Interquartile Range): Uses Q1-1.5×IQR and Q3+1.5×IQR boundaries',
-    '• Standard Deviation: Traditional method using mean ± 2.5 standard deviations',
-    '• Method selection varies by session based on researcher preference'
-  ], [245, 250, 255]);
-  
-  // MIT methodology
-  addMethodologySection('Movement Initiation Time (MIT) Analysis', [
-    '• MIT measured using 30-tap finger tapping protocol',
-    '• Raw RT = Stimulus Detection Time + Movement Time + System Latency',
-    '• MIT-corrected RT isolates cognitive processing by subtracting movement component',
-    '• MIT reliability calculated using Intraclass Correlation Coefficient (ICC)',
-    '• Only sessions with reliable MIT data (ICC > 0.70) provide corrected values'
-  ], [250, 255, 245]);
-
-  // IES methodology
-  addMethodologySection('Inverse Efficiency Score (IES) Analysis', [
-    '• IES = Mean RT ÷ Proportion Correct (accounts for speed-accuracy trade-off)',
-    '• Lower IES scores indicate better combined speed-accuracy performance',
-    '• Used for CRT and Go/No-Go tests where accuracy varies',
-    '• Enables comparison across conditions and groups with different strategies',
-    '• Calculated only when accuracy > 0% to avoid division by zero'
-  ], [255, 245, 250]);
-  
-  // Data quality standards
-  addMethodologySection('Data Quality Assurance', [
-    '• Practice trials excluded from all statistical analyses',
-    '• Anticipatory responses (<100ms) automatically flagged as outliers',
-    '• Delayed responses (>1000ms for SRT, >1500ms for CRT) flagged as outliers',
-    '• False alarm responses in Go/No-Go tests excluded from RT calculations',
-    '• Cross-modal stimulus comparisons require scientific interpretation caution'
-  ], [255, 250, 245]);
-  
-  // Technical specifications
-  addMethodologySection('Technical Measurement Standards', [
-    '• High-resolution timing using Performance.now() API (sub-millisecond precision)',
-    '• Device latency compensation through calibration protocols',
-    '• Touch event sampling optimized for rapid response detection',
-    '• Results valid for within-modality comparisons and longitudinal tracking',
-    '• Export data includes both raw and processed values for transparency'
-  ], [250, 250, 255]);
-  
-  // Report footer metadata
-  if (yPosition > pageHeight - 80) {
-    addFooter(pageNumber);
-    pdf.addPage();
-    addHeader();
-    pageNumber++;
-    yPosition = 35;
-  }
-  
-  // Final metadata section
-  pdf.setFillColor(240, 240, 240);
-  pdf.rect(15, yPosition - 5, pageWidth - 30, 35, 'F');
-  
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(26, 54, 93);
-  pdf.text('Report Generation Information', 20, yPosition + 5);
+  // Compact methodology section
+  pdf.setFillColor(248, 250, 252);
+  pdf.rect(15, yPosition - 5, pageWidth - 30, 25, 'F');
   
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(0, 0, 0);
   
-  pdf.text(`Generated: ${new Date(data.metadata.exportDate).toLocaleDateString()} at ${new Date(data.metadata.exportDate).toLocaleTimeString()}`, 25, yPosition + 15);
-  pdf.text(`Platform: QuickReflex v${data.metadata.version} - Research-Grade Reaction Time Testing`, 25, yPosition + 22);
-  pdf.text(`Device: ${data.metadata.deviceInfo.substring(0, 80)}`, 25, yPosition + 29);
+  const methodologyText = [
+    '• Timing: High-resolution Performance.now() API with device latency compensation',
+    '• MIT Analysis: 30-tap finger tapping protocol for movement time calibration',
+    '• Outlier Detection: MAD/IQR/Trimming/StdDev methods based on researcher preference',
+    '• IES Score: Mean RT ÷ Proportion Correct for speed-accuracy trade-off analysis'
+  ];
+  
+  methodologyText.forEach((text, index) => {
+    pdf.text(text, 20, yPosition + 5 + (index * 5));
+  });
+  
+  yPosition += 35;
+  
+  // Compact Report metadata
+  pdf.setFillColor(245, 245, 245);
+  pdf.rect(15, yPosition - 3, pageWidth - 30, 20, 'F');
+  
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(80, 80, 80);
+  
+  pdf.text(`Generated: ${new Date(data.metadata.exportDate).toLocaleDateString()} | QuickReflex v${data.metadata.version}`, 20, yPosition + 5);
+  pdf.text(`Device: ${data.metadata.deviceInfo.substring(0, 60)}...`, 20, yPosition + 12);
   
   // Add final footer
   addFooter(pageNumber);
