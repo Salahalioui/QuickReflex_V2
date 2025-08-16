@@ -315,7 +315,7 @@ export default function Results() {
                   <div className="text-2xl font-bold text-primary" data-testid="stat-mean-rt">
                     {Math.round(selectedResult.meanRT)}
                   </div>
-                  <div className="text-sm text-gray-600">Raw Mean RT (ms)</div>
+                  <div className="text-sm text-gray-600">Device-Corrected Mean RT (ms)</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-secondary" data-testid="stat-sd-rt">
@@ -392,7 +392,7 @@ export default function Results() {
                     </div>
                   </div>
                   <div className="mt-3 text-xs text-blue-700 dark:text-blue-300">
-                    <p>• Raw RT = Stimulus Detection + Movement Time + System Latency</p>
+                    <p>• Device-corrected RT = Raw RT - Device Latency Offset</p>
                     <p>• MIT reliability: {Math.round(mitData.reliability * 100)}% ({mitData.validTaps} taps)</p>
                     <p>• Cognitive processing isolated by subtracting movement time</p>
                   </div>

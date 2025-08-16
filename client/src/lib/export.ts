@@ -348,7 +348,7 @@ export function generatePDFSummary(data: ExportData): Blob {
     // Mean RT
     pdf.text('Mean RT', 25, yPosition + (currentRow * rowHeight));
     pdf.text(`${meanRT.toFixed(1)} ms`, 80, yPosition + (currentRow * rowHeight));
-    pdf.text('Raw reaction time including all components', 130, yPosition + (currentRow * rowHeight));
+    pdf.text('Device-corrected reaction time', 130, yPosition + (currentRow * rowHeight));
     currentRow++;
     
     // Standard deviation
