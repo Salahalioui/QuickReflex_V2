@@ -66,7 +66,7 @@ export default function About() {
           </CardContent>
         </Card>
 
-        {/* Contributors Card */}
+        {/* Contributors Card - Blank for now */}
         <Card data-testid="card-contributors">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -75,24 +75,13 @@ export default function About() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <h4 className="font-semibold text-primary">Professor Khiredine BenRabah</h4>
-                <p className="text-sm text-muted-foreground">Supervisor</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-primary">Professor Mohamed BenNaâdja</h4>
-                <p className="text-sm text-muted-foreground">Co‑Supervisor</p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-primary">Professor Mohamed El Amine Ouadah</h4>
-                <p className="text-sm text-muted-foreground">Senior Advisor</p>
-              </div>
-            </div>
+            <p className="text-muted-foreground text-center py-4">
+              Contributors information will be added here.
+            </p>
           </CardContent>
         </Card>
 
-        {/* Research Affiliation Card */}
+        {/* Research Affiliation Card - Blank for now */}
         <Card data-testid="card-research-affiliation">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -101,10 +90,9 @@ export default function About() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <h4 className="font-semibold">Laboratory of Multidisciplinary Research Program in Sports Science and Human Movement</h4>
-              <p className="text-muted-foreground">University of Tissemsilt, Algeria</p>
-            </div>
+            <p className="text-muted-foreground text-center py-4">
+              Research affiliation information will be added here.
+            </p>
           </CardContent>
         </Card>
 
